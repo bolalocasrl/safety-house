@@ -46,35 +46,31 @@ export default function ApplyCompletePage() {
       }
 
       // Verifica che l'utente sia autenticato
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) {
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError || !user) {
         setErrorMessage('Sessione non trovata. Riprova dalla pagina dell\'annuncio.')
         setStatus('error')
         return
       }
 
-      // Upsert candidato usando id come chiave univoca
+      // Aggiorna il candidato creato dal trigger con i dati del form
       const { data: candidate, error: candidateError } = await supabase
         .from('candidates')
-        .upsert(
-          {
-            id: session.user.id,
-            user_id: session.user.id,
-            full_name: pending.full_name,
-            email: pending.email,
-            phone: pending.phone,
-            dni_nie: pending.dni_nie,
-            nationality: pending.nationality,
-            employment_type: pending.employment_type,
-            monthly_income: pending.monthly_income,
-            contract_type: pending.contract_type,
-            has_pets: pending.has_pets,
-            smoker: pending.smoker,
-            num_occupants: pending.num_occupants,
-            extra_notes: pending.extra_notes,
-          },
-          { onConflict: 'id' }
-        )
+        .update({
+          full_name: pending.full_name,
+          email: pending.email,
+          phone: pending.phone,
+          dni_nie: pending.dni_nie,
+          nationality: pending.nationality,
+          employment_type: pending.employment_type,
+          monthly_income: pending.monthly_income,
+          contract_type: pending.contract_type,
+          has_pets: pending.has_pets,
+          smoker: pending.smoker,
+          num_occupants: pending.num_occupants,
+          extra_notes: pending.extra_notes,
+        })
+        .eq('id', user.id)
         .select('id')
         .single()
 
