@@ -53,11 +53,12 @@ export default function ApplyCompletePage() {
         return
       }
 
-      // Upsert candidato (email come chiave univoca)
+      // Upsert candidato usando id come chiave univoca
       const { data: candidate, error: candidateError } = await supabase
         .from('candidates')
         .upsert(
           {
+            id: session.user.id,
             user_id: session.user.id,
             full_name: pending.full_name,
             email: pending.email,
@@ -72,7 +73,7 @@ export default function ApplyCompletePage() {
             num_occupants: pending.num_occupants,
             extra_notes: pending.extra_notes,
           },
-          { onConflict: 'email' }
+          { onConflict: 'id' }
         )
         .select('id')
         .single()
