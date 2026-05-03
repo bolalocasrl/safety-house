@@ -98,7 +98,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
         .eq('listing_id', id)
         .order('created_at', { ascending: false })
 
-      setApplications((appsData ?? []) as Application[])
+      setApplications((appsData ?? []) as unknown as Application[])
       setLoadingPage(false)
     }
 
