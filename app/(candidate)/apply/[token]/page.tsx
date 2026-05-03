@@ -295,12 +295,10 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
                   onChange={e => set2('employment_type', e.target.value)}
                 >
                   <option value="" disabled>Seleziona...</option>
-                  <option value="dipendente">Dipendente</option>
-                  <option value="autonomo">Lavoratore autonomo</option>
-                  <option value="libero_professionista">Libero professionista</option>
-                  <option value="studente">Studente</option>
-                  <option value="pensionato">Pensionato</option>
-                  <option value="disoccupato">In cerca di lavoro</option>
+                  <option value="employed">Dipendente</option>
+                  <option value="self_employed">Autonomo / Libero professionista</option>
+                  <option value="student">Studente</option>
+                  <option value="retired">Pensionato</option>
                 </select>
               </div>
               <div>
@@ -315,11 +313,9 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
                   onChange={e => set2('contract_type', e.target.value)}
                 >
                   <option value="" disabled>Seleziona...</option>
-                  <option value="indeterminato">Tempo indeterminato</option>
-                  <option value="determinato">Tempo determinato</option>
-                  <option value="apprendistato">Apprendistato</option>
-                  <option value="partita_iva">Partita IVA</option>
-                  <option value="nessuno">Nessun contratto</option>
+                  <option value="indefinido">Tempo indeterminato</option>
+                  <option value="temporal">Tempo determinato</option>
+                  <option value="autonomo">Autonomo / Libero professionista</option>
                 </select>
               </div>
             </div>
