@@ -140,55 +140,32 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
     setSubmitting(true)
     setSubmitError(null)
 
-    // 1. Invia Magic Link OTP per verificare l'email
+    // 1. Salva i dati in localStorage — gli insert avverranno dopo auth in /apply/complete
+    localStorage.setItem('pending_application', JSON.stringify({
+      listing_id: listing.id,
+      full_name: step1.full_name,
+      email: step1.email,
+      phone: step1.phone,
+      dni_nie: step1.dni_nie,
+      nationality: step1.nationality,
+      employment_type: step2.employment_type,
+      monthly_income: Number(step2.monthly_income),
+      contract_type: step2.contract_type,
+      has_pets: step3.has_pets,
+      smoker: step3.smoker,
+      num_occupants: Number(step3.num_occupants),
+      extra_notes: step3.extra_notes,
+    }))
+
+    // 2. Invia Magic Link OTP
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: step1.email,
       options: { shouldCreateUser: true },
     })
 
     if (otpError) {
+      localStorage.removeItem('pending_application')
       setSubmitError('Errore nell\'invio dell\'email di verifica. Controlla l\'indirizzo inserito.')
-      setSubmitting(false)
-      return
-    }
-
-    // 2. Inserisci candidato
-    const { data: candidate, error: candidateError } = await supabase
-      .from('candidates')
-      .insert({
-        full_name: step1.full_name,
-        email: step1.email,
-        phone: step1.phone,
-        dni_nie: step1.dni_nie,
-        nationality: step1.nationality,
-        employment_type: step2.employment_type,
-        monthly_income: Number(step2.monthly_income),
-        contract_type: step2.contract_type,
-        has_pets: step3.has_pets,
-        smoker: step3.smoker,
-        num_occupants: Number(step3.num_occupants),
-        extra_notes: step3.extra_notes,
-      })
-      .select('id')
-      .single()
-
-    if (candidateError || !candidate) {
-      setSubmitError('Errore nel salvataggio dei dati. Riprova tra qualche istante.')
-      setSubmitting(false)
-      return
-    }
-
-    // 3. Inserisci candidatura
-    const { error: applicationError } = await supabase
-      .from('applications')
-      .insert({
-        listing_id: listing.id,
-        candidate_id: candidate.id,
-        status: 'pending',
-      })
-
-    if (applicationError) {
-      setSubmitError('Errore nell\'invio della candidatura. Riprova tra qualche istante.')
       setSubmitting(false)
       return
     }
@@ -235,8 +212,9 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
             Candidatura inviata!
           </h1>
           <p style={{ color: '#6B7585', fontSize: '14px', lineHeight: '1.6' }}>
-            La tua candidatura per <strong style={{ color: '#9AA3B2' }}>{listing.title}</strong> è stata registrata.
-            Controlla la tua email: ti abbiamo inviato un link per verificare la tua identità.
+            Controlla la tua email: ti abbiamo inviato un link per completare la candidatura per{' '}
+            <strong style={{ color: '#9AA3B2' }}>{listing.title}</strong>.
+            Clicca il link nell'email per confermare la tua identità e finalizzare l'invio.
           </p>
         </div>
       </div>

@@ -11,7 +11,8 @@ export default function VerifyPage() {
     const supabase = createClient()
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        router.push('/dashboard')
+        const hasPending = !!localStorage.getItem('pending_application')
+        router.push(hasPending ? '/apply/complete' : '/dashboard')
       }
     })
   }, [router])
