@@ -1,6 +1,7 @@
 'use client'
 
 import { use, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 type OwnerRequirements = {
@@ -27,6 +28,7 @@ type Application = {
   id: string
   created_at: string
   safety_score: number | null
+  candidate_id: string
   candidates: {
     full_name: string
     email: string
@@ -91,6 +93,8 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   const [statusUpdating, setStatusUpdating] = useState(false)
   const [statusError, setStatusError] = useState<string | null>(null)
   const [scoringLoading, setScoringLoading] = useState<Record<string, boolean>>({})
+  const [startingProcedure, setStartingProcedure] = useState<Record<string, boolean>>({})
+  const router = useRouter()
 
   useEffect(() => {
     async function load() {
@@ -110,7 +114,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
       const { data: appsData } = await supabase
         .from('applications')
-        .select('id, created_at, safety_score, candidates(full_name, email, phone, employment_type, monthly_income)')
+        .select('id, created_at, safety_score, candidate_id, candidates(full_name, email, phone, employment_type, monthly_income)')
         .eq('listing_id', id)
         .order('created_at', { ascending: false })
 
@@ -139,6 +143,23 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       setListing(data as Listing)
     }
     setStatusUpdating(false)
+  }
+
+  async function handleStartProcedure(candidateId: string) {
+    setStartingProcedure(prev => ({ ...prev, [candidateId]: true }))
+    try {
+      const res = await fetch('/api/procedures', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing_id: id, candidate_id: candidateId }),
+      })
+      if (res.ok) {
+        const { id: procedureId } = await res.json()
+        router.push(`/procedures/${procedureId}`)
+      }
+    } finally {
+      setStartingProcedure(prev => ({ ...prev, [candidateId]: false }))
+    }
   }
 
   async function handleCalculateScore(appId: string) {
@@ -363,8 +384,8 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
           </div>
         ) : (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 130px 140px 100px', padding: '10px 24px', gap: '16px', borderBottom: '1px solid #2E3540' }}>
-              {['Candidato', 'Contatto', 'Reddito mensile', 'Score', 'Ricevuta'].map(h => (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 150px 120px 130px 90px 150px', padding: '10px 24px', gap: '16px', borderBottom: '1px solid #2E3540' }}>
+              {['Candidato', 'Contatto', 'Reddito mensile', 'Score', 'Ricevuta', ''].map(h => (
                 <span key={h} style={{ color: '#6B7585', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</span>
               ))}
             </div>
@@ -373,7 +394,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 key={app.id}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '1fr 160px 130px 140px 100px',
+                  gridTemplateColumns: '1fr 150px 120px 130px 90px 150px',
                   padding: '16px 24px',
                   gap: '16px',
                   alignItems: 'center',
@@ -424,6 +445,26 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 <p style={{ color: '#6B7585', fontSize: '12px' }}>
                   {new Date(app.created_at).toLocaleDateString('it-IT')}
                 </p>
+                <div style={{ textAlign: 'right' }}>
+                  <button
+                    onClick={() => handleStartProcedure(app.candidate_id)}
+                    disabled={!!startingProcedure[app.candidate_id]}
+                    style={{
+                      padding: '5px 12px',
+                      background: 'rgba(232,146,16,0.1)',
+                      border: '1px solid rgba(232,146,16,0.3)',
+                      borderRadius: '6px',
+                      color: '#E89210',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      cursor: startingProcedure[app.candidate_id] ? 'not-allowed' : 'pointer',
+                      opacity: startingProcedure[app.candidate_id] ? 0.6 : 1,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {startingProcedure[app.candidate_id] ? '...' : 'Avvia Procedimento'}
+                  </button>
+                </div>
               </div>
             ))}
           </>

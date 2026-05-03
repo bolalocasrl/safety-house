@@ -61,15 +61,27 @@ export async function POST(request: NextRequest) {
     }
   )
 
-  await supabase
+  const { error: candidateUpdateError } = await supabase
     .from('candidates')
     .update({ safety_score: breakdown.total })
     .eq('id', application.candidate_id)
 
-  await supabase
+  if (candidateUpdateError) {
+    console.error('[scoring] candidate update failed:', candidateUpdateError.message, candidateUpdateError.code)
+  } else {
+    console.log('[scoring] candidate', application.candidate_id, '→ safety_score =', breakdown.total)
+  }
+
+  const { error: applicationUpdateError } = await supabase
     .from('applications')
     .update({ safety_score: breakdown.total })
     .eq('id', application_id)
+
+  if (applicationUpdateError) {
+    console.error('[scoring] application update failed:', applicationUpdateError.message, applicationUpdateError.code)
+  } else {
+    console.log('[scoring] application', application_id, '→ safety_score =', breakdown.total)
+  }
 
   return NextResponse.json({
     safety_score: breakdown.total,
