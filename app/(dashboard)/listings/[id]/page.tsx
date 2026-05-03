@@ -26,6 +26,7 @@ type Listing = {
 type Application = {
   id: string
   created_at: string
+  safety_score: number | null
   candidates: {
     full_name: string
     email: string
@@ -49,6 +50,20 @@ const STATUS_OPTIONS: { value: Listing['status']; label: string }[] = [
 
 function formatRent(n: number) {
   return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
+}
+
+function ScoreBadge({ score }: { score: number }) {
+  const color = score > 7 ? '#1BA35A' : score >= 4 ? '#E89210' : '#E83B2D'
+  const bg    = score > 7 ? 'rgba(27,163,90,0.12)' : score >= 4 ? 'rgba(232,146,16,0.12)' : 'rgba(232,59,45,0.12)'
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      padding: '4px 10px', borderRadius: '99px',
+      background: bg, color, fontSize: '13px', fontWeight: 700, minWidth: '48px',
+    }}>
+      {score.toFixed(1)}
+    </span>
+  )
 }
 
 function StatusBadge({ status }: { status: Listing['status'] }) {
@@ -75,6 +90,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   const [notFound, setNotFound] = useState(false)
   const [statusUpdating, setStatusUpdating] = useState(false)
   const [statusError, setStatusError] = useState<string | null>(null)
+  const [scoringLoading, setScoringLoading] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     async function load() {
@@ -94,7 +110,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
       const { data: appsData } = await supabase
         .from('applications')
-        .select('id, created_at, candidates(full_name, email, phone, employment_type, monthly_income)')
+        .select('id, created_at, safety_score, candidates(full_name, email, phone, employment_type, monthly_income)')
         .eq('listing_id', id)
         .order('created_at', { ascending: false })
 
@@ -123,6 +139,25 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       setListing(data as Listing)
     }
     setStatusUpdating(false)
+  }
+
+  async function handleCalculateScore(appId: string) {
+    setScoringLoading(prev => ({ ...prev, [appId]: true }))
+    try {
+      const res = await fetch('/api/scoring', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ application_id: appId }),
+      })
+      if (res.ok) {
+        const { safety_score } = await res.json()
+        setApplications(prev =>
+          prev.map(a => a.id === appId ? { ...a, safety_score } : a)
+        )
+      }
+    } finally {
+      setScoringLoading(prev => ({ ...prev, [appId]: false }))
+    }
   }
 
   if (loadingPage) {
@@ -328,8 +363,8 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
           </div>
         ) : (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 140px 120px', padding: '10px 24px', gap: '16px', borderBottom: '1px solid #2E3540' }}>
-              {['Candidato', 'Contatto', 'Reddito mensile', 'Ricevuta'].map(h => (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 130px 140px 100px', padding: '10px 24px', gap: '16px', borderBottom: '1px solid #2E3540' }}>
+              {['Candidato', 'Contatto', 'Reddito mensile', 'Score', 'Ricevuta'].map(h => (
                 <span key={h} style={{ color: '#6B7585', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</span>
               ))}
             </div>
@@ -338,7 +373,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 key={app.id}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '1fr 160px 140px 120px',
+                  gridTemplateColumns: '1fr 160px 130px 140px 100px',
                   padding: '16px 24px',
                   gap: '16px',
                   alignItems: 'center',
@@ -362,6 +397,30 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                     ? new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(app.candidates.monthly_income)
                     : '—'}
                 </p>
+                <div>
+                  {app.safety_score != null ? (
+                    <ScoreBadge score={app.safety_score} />
+                  ) : (
+                    <button
+                      onClick={() => handleCalculateScore(app.id)}
+                      disabled={!!scoringLoading[app.id]}
+                      style={{
+                        padding: '5px 12px',
+                        background: 'rgba(16,96,232,0.1)',
+                        border: '1px solid rgba(16,96,232,0.25)',
+                        borderRadius: '6px',
+                        color: '#1060E8',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        cursor: scoringLoading[app.id] ? 'not-allowed' : 'pointer',
+                        opacity: scoringLoading[app.id] ? 0.6 : 1,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {scoringLoading[app.id] ? '...' : 'Calcola Score'}
+                    </button>
+                  )}
+                </div>
                 <p style={{ color: '#6B7585', fontSize: '12px' }}>
                   {new Date(app.created_at).toLocaleDateString('it-IT')}
                 </p>
