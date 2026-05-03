@@ -160,7 +160,7 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
     // 2. Invia Magic Link OTP
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: step1.email,
-      options: { shouldCreateUser: true },
+      options: { shouldCreateUser: true, emailRedirectTo: 'https://safety-house-nine.vercel.app/verify' },
     })
 
     if (otpError) {
