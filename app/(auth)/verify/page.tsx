@@ -9,12 +9,16 @@ export default function VerifyPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.onAuthStateChange((event, session) => {
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
+        subscription.unsubscribe()
         const hasPending = !!localStorage.getItem('pending_application')
         router.push(hasPending ? '/apply/complete' : '/dashboard')
       }
     })
+
+    return () => subscription.unsubscribe()
   }, [router])
 
   return (

@@ -27,8 +27,8 @@ export default function ApplyCompletePage() {
 
   useEffect(() => {
     const supabase = createClient()
+    let subscription: { unsubscribe: () => void } | null = null
 
-    // Legge i dati salvati prima dell'OTP
     const raw = localStorage.getItem('pending_application')
     if (!raw) {
       router.replace('/dashboard')
@@ -45,7 +45,6 @@ export default function ApplyCompletePage() {
     }
 
     async function proceed(userId: string) {
-      // Aggiorna il candidato creato dal trigger con i dati del form
       const { error: candidateError } = await supabase
         .from('candidates')
         .update({
@@ -70,7 +69,6 @@ export default function ApplyCompletePage() {
         return
       }
 
-      // Insert candidatura — candidate_id è userId per costruzione (trigger)
       const { error: applicationError } = await supabase
         .from('applications')
         .insert({
@@ -80,7 +78,6 @@ export default function ApplyCompletePage() {
         })
 
       if (applicationError) {
-        // Candidatura già esistente: trattalo come successo silenzioso
         if (applicationError.code !== '23505') {
           setErrorMessage('Errore nell\'invio della candidatura. Riprova tra qualche istante.')
           setStatus('error')
@@ -92,15 +89,28 @@ export default function ApplyCompletePage() {
       setStatus('success')
     }
 
-    // Aspetta SIGNED_IN così Supabase ha già processato il token dall'URL
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        subscription.unsubscribe()
-        proceed(session.user.id)
+    async function init() {
+      // La sessione è già attiva: /verify l'ha stabilita prima del redirect qui.
+      // getUser() la trova subito senza dover aspettare un nuovo evento SIGNED_IN.
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        proceed(user.id)
+        return
       }
-    })
 
-    return () => subscription.unsubscribe()
+      // Fallback: in caso di race condition, aspetta l'evento SIGNED_IN
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          data.subscription.unsubscribe()
+          proceed(session.user.id)
+        }
+      })
+      subscription = data.subscription
+    }
+
+    init()
+
+    return () => subscription?.unsubscribe()
   }, [router])
 
   if (status === 'processing') {
