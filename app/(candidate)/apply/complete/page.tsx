@@ -26,33 +26,25 @@ export default function ApplyCompletePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    async function complete() {
-      const supabase = createClient()
+    const supabase = createClient()
 
-      // Legge i dati salvati prima dell'OTP
-      const raw = localStorage.getItem('pending_application')
-      if (!raw) {
-        router.replace('/dashboard')
-        return
-      }
+    // Legge i dati salvati prima dell'OTP
+    const raw = localStorage.getItem('pending_application')
+    if (!raw) {
+      router.replace('/dashboard')
+      return
+    }
 
-      let pending: PendingApplication
-      try {
-        pending = JSON.parse(raw)
-      } catch {
-        localStorage.removeItem('pending_application')
-        router.replace('/dashboard')
-        return
-      }
+    let pending: PendingApplication
+    try {
+      pending = JSON.parse(raw)
+    } catch {
+      localStorage.removeItem('pending_application')
+      router.replace('/dashboard')
+      return
+    }
 
-      // Verifica che l'utente sia autenticato
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      if (userError || !user) {
-        setErrorMessage('Sessione non trovata. Riprova dalla pagina dell\'annuncio.')
-        setStatus('error')
-        return
-      }
-
+    async function proceed(userId: string) {
       // Aggiorna il candidato creato dal trigger con i dati del form
       const { data: candidate, error: candidateError } = await supabase
         .from('candidates')
@@ -70,7 +62,7 @@ export default function ApplyCompletePage() {
           num_occupants: pending.num_occupants,
           extra_notes: pending.extra_notes,
         })
-        .eq('id', user.id)
+        .eq('id', userId)
         .select('id')
         .single()
 
@@ -102,7 +94,15 @@ export default function ApplyCompletePage() {
       setStatus('success')
     }
 
-    complete()
+    // Aspetta SIGNED_IN così Supabase ha già processato il token dall'URL
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        subscription.unsubscribe()
+        proceed(session.user.id)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [router])
 
   if (status === 'processing') {
