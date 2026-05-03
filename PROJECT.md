@@ -120,13 +120,14 @@ safety_house/
 - [x] Dashboard con sidebar e stats
 - [x] GitHub repo + Vercel deploy automatico
 
-### Sprint 2 — Listings & Candidature 🔄 IN CORSO
+### Sprint 2 — Listings & Candidature ✅ COMPLETATO (03/05/2026)
 - [x] Pagina lista annunci (`/listings`)
 - [x] Form nuovo annuncio (`/listings/new`)
 - [x] Dettaglio annuncio (`/listings/[id]`)
 - [x] Form candidatura pubblico (`/apply/[token]`)
-- [ ] Upload documenti (DNI, nómina, contratto)
-- [ ] Testare flusso completo end-to-end
+- [x] Flusso auth Magic Link → `/verify` → `/apply/complete` funzionante
+- [x] Testare flusso completo end-to-end _(testato su Vercel il 03/05/2026)_
+- [ ] Upload documenti (DNI, nómina, contratto) ❌ Da fare nel prossimo sprint
 
 ### Sprint 3 — Scoring Engine ❌ Da fare
 - [ ] Parser CSV Vida Laboral

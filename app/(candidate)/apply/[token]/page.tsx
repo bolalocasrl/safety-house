@@ -33,6 +33,16 @@ type Step3 = {
   extra_notes: string
 }
 
+type Step4 = {
+  vida_laboral_csv_code: string
+}
+
+type Uploads = {
+  contract: boolean
+  nomina: boolean
+  identity: boolean
+}
+
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '11px 14px',
@@ -55,6 +65,10 @@ const labelStyle: React.CSSProperties = {
   letterSpacing: '0.05em',
 }
 
+// Vida Laboral CSV: 6 gruppi di 5 caratteri alfanumerici maiuscoli separati da trattino
+// Esempio: HCQIN-D2BSU-XZIKJ-NWT5R-WFP2H-YUHQX
+const CSV_REGEX = /^[A-Z0-9]{5}(-[A-Z0-9]{5}){5}$/
+
 function formatRent(n: number) {
   return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
 }
@@ -74,10 +88,59 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
             {i < current ? '✓' : i + 1}
           </div>
           {i < total - 1 && (
-            <div style={{ width: '32px', height: '2px', background: i < current ? '#1BA35A' : '#2E3540', borderRadius: '1px' }} />
+            <div style={{ width: '24px', height: '2px', background: i < current ? '#1BA35A' : '#2E3540', borderRadius: '1px' }} />
           )}
         </div>
       ))}
+    </div>
+  )
+}
+
+function MockUploadField({
+  label,
+  uploaded,
+  onUpload,
+}: {
+  label: string
+  uploaded: boolean
+  onUpload: () => void
+}) {
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '11px 14px',
+        background: '#0D1117',
+        border: `1px solid ${uploaded ? '#1BA35A' : '#2E3540'}`,
+        borderRadius: '8px',
+        transition: 'border-color 0.2s',
+      }}>
+        {uploaded ? (
+          <span style={{ color: '#1BA35A', fontSize: '14px', fontWeight: 500 }}>
+            Caricato ✓
+          </span>
+        ) : (
+          <span style={{ color: '#6B7585', fontSize: '14px' }}>Nessun file selezionato</span>
+        )}
+        <button
+          type="button"
+          onClick={onUpload}
+          style={{
+            padding: '6px 14px',
+            background: uploaded ? 'rgba(27,163,90,0.1)' : 'rgba(16,96,232,0.1)',
+            border: `1px solid ${uploaded ? 'rgba(27,163,90,0.3)' : 'rgba(16,96,232,0.3)'}`,
+            borderRadius: '6px',
+            color: uploaded ? '#1BA35A' : '#1060E8',
+            fontSize: '12px',
+            fontWeight: 500,
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          {uploaded ? 'Cambia' : 'Seleziona file'}
+        </button>
+      </div>
     </div>
   )
 }
@@ -104,6 +167,9 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
   const [step3, setStep3] = useState<Step3>({
     has_pets: false, smoker: false, num_occupants: '1', extra_notes: '',
   })
+  const [step4, setStep4] = useState<Step4>({ vida_laboral_csv_code: '' })
+  const [uploads, setUploads] = useState<Uploads>({ contract: false, nomina: false, identity: false })
+  const [csvError, setCsvError] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadListing() {
@@ -134,13 +200,27 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
   function set3(field: keyof Step3, value: string | boolean) {
     setStep3(prev => ({ ...prev, [field]: value }))
   }
+  function set4(field: keyof Step4, value: string) {
+    setCsvError(null)
+    setStep4(prev => ({ ...prev, [field]: value }))
+  }
+  function setUpload(field: keyof Uploads) {
+    setUploads(prev => ({ ...prev, [field]: true }))
+  }
 
   async function handleSubmit() {
     if (!listing) return
+
+    // Valida formato CSV Vida Laboral
+    const csvCode = step4.vida_laboral_csv_code.trim().toUpperCase()
+    if (csvCode && !CSV_REGEX.test(csvCode)) {
+      setCsvError('Formato non valido. Usa il formato: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX')
+      return
+    }
+
     setSubmitting(true)
     setSubmitError(null)
 
-    // 1. Salva i dati in localStorage — gli insert avverranno dopo auth in /apply/complete
     localStorage.setItem('pending_application', JSON.stringify({
       listing_id: listing.id,
       full_name: step1.full_name,
@@ -155,9 +235,9 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
       smoker: step3.smoker,
       num_occupants: Number(step3.num_occupants),
       extra_notes: step3.extra_notes,
+      vida_laboral_csv_code: csvCode || null,
     }))
 
-    // 2. Invia Magic Link OTP
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: step1.email,
       options: { shouldCreateUser: true, emailRedirectTo: 'https://safety-house-nine.vercel.app/verify' },
@@ -221,7 +301,7 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
     )
   }
 
-  const STEP_TITLES = ['Dati personali', 'Situazione lavorativa', 'Stile di vita']
+  const STEP_TITLES = ['Dati personali', 'Situazione lavorativa', 'Stile di vita', 'Documenti e Verifica']
 
   return (
     <div style={{ minHeight: '100vh', background: '#0D1117', fontFamily: 'sans-serif' }}>
@@ -250,7 +330,7 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
 
         {/* Card form */}
         <div style={{ background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px', padding: '32px' }}>
-          <StepIndicator current={step} total={3} />
+          <StepIndicator current={step} total={4} />
 
           <h2 style={{ color: '#fff', fontSize: '18px', fontWeight: 600, marginBottom: '24px' }}>
             {STEP_TITLES[step]}
@@ -366,6 +446,50 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
             </div>
           )}
 
+          {/* Step 4 — Documenti e Verifica */}
+          {step === 3 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <MockUploadField
+                label="Contratto di lavoro (PDF)"
+                uploaded={uploads.contract}
+                onUpload={() => setUpload('contract')}
+              />
+              <MockUploadField
+                label="Ultima nómina (PDF)"
+                uploaded={uploads.nomina}
+                onUpload={() => setUpload('nomina')}
+              />
+              <MockUploadField
+                label="Documento identità (DNI / NIE / Passaporto)"
+                uploaded={uploads.identity}
+                onUpload={() => setUpload('identity')}
+              />
+
+              <div>
+                <label style={labelStyle}>Codice CSV Vida Laboral</label>
+                <input
+                  style={{
+                    ...inputStyle,
+                    borderColor: csvError ? 'rgba(220,38,38,0.6)' : '#2E3540',
+                    fontFamily: 'monospace',
+                    letterSpacing: '0.05em',
+                  }}
+                  type="text"
+                  placeholder="Es. HCQIN-D2BSU-XZIKJ-NWT5R-WFP2H-YUHQX"
+                  value={step4.vida_laboral_csv_code}
+                  onChange={e => set4('vida_laboral_csv_code', e.target.value.toUpperCase())}
+                  maxLength={35}
+                />
+                {csvError && (
+                  <p style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>{csvError}</p>
+                )}
+                <p style={{ color: '#6B7585', fontSize: '11px', marginTop: '6px', lineHeight: '1.5' }}>
+                  Facoltativo. Il codice si trova sul report Vida Laboral scaricato dalla Seguridad Social.
+                </p>
+              </div>
+            </div>
+          )}
+
           {submitError && (
             <div style={{
               marginTop: '20px',
@@ -395,7 +519,7 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
               type="button"
               disabled={submitting}
               onClick={() => {
-                if (step < 2) {
+                if (step < 3) {
                   setStep(s => s + 1)
                 } else {
                   handleSubmit()
@@ -408,7 +532,7 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
                 opacity: submitting ? 0.7 : 1,
               }}
             >
-              {step < 2
+              {step < 3
                 ? 'Continua'
                 : submitting
                   ? 'Invio in corso...'

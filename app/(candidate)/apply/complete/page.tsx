@@ -18,6 +18,7 @@ type PendingApplication = {
   smoker: boolean
   num_occupants: number
   extra_notes: string
+  vida_laboral_csv_code: string | null
 }
 
 export default function ApplyCompletePage() {
@@ -60,6 +61,7 @@ export default function ApplyCompletePage() {
           smoker: pending.smoker,
           num_occupants: pending.num_occupants,
           extra_notes: pending.extra_notes,
+          vida_laboral_csv_code: pending.vida_laboral_csv_code,
         })
         .eq('id', userId)
 
