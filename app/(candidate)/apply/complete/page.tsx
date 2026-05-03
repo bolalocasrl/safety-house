@@ -46,7 +46,7 @@ export default function ApplyCompletePage() {
 
     async function proceed(userId: string) {
       // Aggiorna il candidato creato dal trigger con i dati del form
-      const { data: candidate, error: candidateError } = await supabase
+      const { error: candidateError } = await supabase
         .from('candidates')
         .update({
           full_name: pending.full_name,
@@ -63,21 +63,19 @@ export default function ApplyCompletePage() {
           extra_notes: pending.extra_notes,
         })
         .eq('id', userId)
-        .select('id')
-        .single()
 
-      if (candidateError || !candidate) {
+      if (candidateError) {
         setErrorMessage('Errore nel salvataggio del profilo. Riprova tra qualche istante.')
         setStatus('error')
         return
       }
 
-      // Insert candidatura
+      // Insert candidatura — candidate_id è userId per costruzione (trigger)
       const { error: applicationError } = await supabase
         .from('applications')
         .insert({
           listing_id: pending.listing_id,
-          candidate_id: candidate.id,
+          candidate_id: userId,
           status: 'pending',
         })
 
