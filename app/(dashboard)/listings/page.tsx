@@ -10,6 +10,7 @@ type Listing = {
   rooms: number
   status: 'active' | 'paused' | 'closed'
   created_at: string
+  applications: { count: number }[]
 }
 
 const STATUS_CONFIG: Record<Listing['status'], { label: string; color: string; bg: string }> = {
@@ -115,7 +116,7 @@ async function ListingsTable() {
   const supabase = await createClient()
   const { data: listings, error } = await supabase
     .from('listings')
-    .select('id, title, address, city, monthly_rent, rooms, status, created_at')
+    .select('id, title, address, city, monthly_rent, rooms, status, created_at, applications(count)')
     .order('created_at', { ascending: false })
 
   console.log('Supabase listings error:', JSON.stringify(error))
@@ -149,12 +150,12 @@ async function ListingsTable() {
       {/* Table header */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1fr 200px 130px 120px 100px',
+        gridTemplateColumns: '1fr 180px 120px 100px 110px 100px',
         padding: '12px 24px',
         borderBottom: '1px solid #2E3540',
         gap: '16px',
       }}>
-        {['Annuncio', 'Indirizzo', 'Affitto mensile', 'Stato', ''].map((h) => (
+        {['Annuncio', 'Indirizzo', 'Affitto mensile', 'Candidature', 'Stato', ''].map((h) => (
           <span key={h} style={{ color: '#6B7585', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             {h}
           </span>
@@ -167,7 +168,7 @@ async function ListingsTable() {
           key={listing.id}
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 200px 130px 120px 100px',
+            gridTemplateColumns: '1fr 180px 120px 100px 110px 100px',
             padding: '16px 24px',
             gap: '16px',
             alignItems: 'center',
@@ -201,6 +202,18 @@ async function ListingsTable() {
             {formatRent(listing.monthly_rent)}
             <span style={{ color: '#6B7585', fontSize: '12px', fontWeight: 400 }}>/mese</span>
           </p>
+
+          {/* Candidature count */}
+          <div>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(16,96,232,0.12)', color: '#1060E8',
+              borderRadius: '99px', padding: '3px 10px',
+              fontSize: '12px', fontWeight: 600, minWidth: '28px',
+            }}>
+              {(listing as Listing).applications[0]?.count ?? 0}
+            </span>
+          </div>
 
           {/* Status */}
           <StatusBadge status={listing.status} />
