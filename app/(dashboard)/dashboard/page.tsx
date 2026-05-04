@@ -22,6 +22,7 @@ export default async function DashboardPage() {
     { count: activeListingsCount },
     { data: agencyListingIds },
     { data: recentListings },
+    { count: activeProceduresCount },
   ] = await Promise.all([
     supabase
       .from('listings')
@@ -41,6 +42,12 @@ export default async function DashboardPage() {
       .eq('agency_id', agencyId ?? '')
       .order('created_at', { ascending: false })
       .limit(3),
+
+    supabase
+      .from('procedures')
+      .select('*', { count: 'exact', head: true })
+      .eq('agency_id', agencyId ?? '')
+      .neq('status', 'completed'),
   ])
 
   // Conta tutte le candidature per le listings dell'agenzia
@@ -55,7 +62,7 @@ export default async function DashboardPage() {
   const stats = [
     { label: 'Annunci attivi',  value: String(activeListingsCount ?? 0), color: '#1060E8' },
     { label: 'Candidature',     value: String(applicationsCount  ?? 0), color: '#1BA35A' },
-    { label: 'Procedimenti',    value: '0',                              color: '#E89210' },
+    { label: 'Procedimenti',    value: String(activeProceduresCount ?? 0), color: '#E89210' },
   ]
 
   const hasActiveListings = (recentListings ?? []).length > 0
