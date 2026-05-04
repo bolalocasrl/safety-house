@@ -1,6 +1,6 @@
 # 🏠 SAFETY HOUSE — PROJECT STATUS
 
-> **Ultimo aggiornamento:** 04/05/2026  
+> **Ultimo aggiornamento:** 03/05/2026 (sessione 2)  
 > **Istruzioni per Claude VS Code:** Leggi questo file all'inizio di ogni sessione prima di fare qualsiasi cosa. Aggiornalo dopo ogni modifica importante.
 
 ---
@@ -45,8 +45,8 @@ Safety House è una piattaforma SaaS CRM verticale per la gestione del ciclo di 
 | Success | `#1BA35A` |
 | Warning | `#E89210` |
 | Danger | `#E83B2D` |
-| Font Display | Sora _(da integrare)_ |
-| Font Body | DM Sans _(da integrare)_ |
+| Font Display | Sora (`--font-sora`, `next/font/google`) |
+| Font Body | DM Sans (`--font-dm-sans`, `next/font/google`) |
 
 ---
 
@@ -118,11 +118,13 @@ safety_house/
 │   │   │   ├── new/page.tsx                ✅ Form nuovo annuncio
 │   │   │   └── [id]/page.tsx               ✅ Dettaglio + candidature + score + Avvia Procedimento
 │   │   ├── candidates/
-│   │   │   └── page.tsx                    ✅ Lista candidati dell'agenzia con score
+│   │   │   ├── page.tsx                    ✅ Lista candidati dell'agenzia con score
+│   │   │   └── [id]/page.tsx               ✅ Profilo completo candidato (5 sezioni + candidature)
 │   │   ├── procedures/
 │   │   │   ├── page.tsx                    ✅ Lista procedimenti con barra progresso
 │   │   │   └── [id]/page.tsx               ✅ Workflow 5 step visivo (Incasòl + archiviazione)
-│   │   └── settings/                       ❌ Da fare
+│   │   └── settings/
+│   │       └── page.tsx                    ✅ Impostazioni (profilo, tema, lingua, piano, notifiche, logout)
 │   ├── (candidate)/
 │   │   └── apply/
 │   │       ├── [token]/page.tsx            ✅ Form candidatura 4 step (+ CSV Vida Laboral + mock upload)
@@ -208,10 +210,14 @@ safety_house/
 
 ## 🔜 DA FARE — PROSSIMA SESSIONE
 
-1. **`/candidates/[id]`** — pagina profilo candidato: tutti i dati del form, score breakdown (solvibilità / matching / antifrode), lista candidature attive su altri annunci
-2. **Score badge lista annunci** — in `/listings/page.tsx` aggiungere colonna con score medio delle candidature ricevute
-3. **Design system Sora + DM Sans** — integrare i font via `next/font` in `layout.tsx`
-4. **`/settings`** — pagina impostazioni agenzia: nome, logo, piano, gestione agenti
+> Tutti i task delle sessioni precedenti sono completati. Proposta Sprint 5:
+
+1. **Multi-tenant filiali** — switch filiale nella sidebar, `branch_id` su listings/procedures
+2. **Stripe Billing** — checkout Starter/Pro/Enterprise, webhook per aggiornare `agencies.plan`
+3. **i18n** — `next-intl` per ES/IT/EN; tutte le label hardcoded in italiano da esternalizzare
+4. **Upload reale documenti** — Supabase Storage, replace mock upload fields in `/apply/[token]`
+5. **PDF contratto** — `@react-pdf/renderer`, generato in Step 3 del workflow procedimenti
+6. **Score breakdown** — card nel profilo candidato (`/candidates/[id]`) con dettaglio solvibilità/matching/antifrode
 
 ---
 
