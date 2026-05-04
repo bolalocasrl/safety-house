@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { calculateScore } from '@/lib/scoring/algorithm'
 
 export async function POST(request: NextRequest) {
+  // Auth check: verifica che la richiesta venga da un utente autenticato
   const supabase = await createClient()
-
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
@@ -12,38 +13,43 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json()
   const { application_id } = body
-
   if (!application_id) {
     return NextResponse.json({ error: 'application_id richiesto' }, { status: 400 })
   }
 
-  const { data: application, error: appError } = await supabase
+  // Tutte le operazioni DB con admin client (bypassa RLS per update server-side)
+  const db = createAdminClient()
+
+  const { data: application, error: appError } = await db
     .from('applications')
     .select('id, candidate_id, listing_id')
     .eq('id', application_id)
     .single()
 
   if (appError || !application) {
+    console.error('[scoring] application not found:', appError?.message)
     return NextResponse.json({ error: 'Candidatura non trovata' }, { status: 404 })
   }
 
-  const { data: candidate, error: candidateError } = await supabase
+  const { data: candidate, error: candidateError } = await db
     .from('candidates')
     .select('monthly_income, has_pets, smoker, num_occupants, vida_laboral_csv_code')
     .eq('id', application.candidate_id)
     .single()
 
   if (candidateError || !candidate) {
+    console.error('[scoring] candidate not found:', candidateError?.message)
     return NextResponse.json({ error: 'Candidato non trovato' }, { status: 404 })
   }
 
-  const { data: listing, error: listingError } = await supabase
+  const { data: listing, error: listingError } = await db
     .from('listings')
     .select('monthly_rent, owner_requirements')
     .eq('id', application.listing_id)
     .single()
 
   if (listingError || !listing) {
+    console.error('[scoring] listing not found:', listingError?.message)
     return NextResponse.json({ error: 'Annuncio non trovato' }, { status: 404 })
   }
 
@@ -61,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
   )
 
-  const { error: candidateUpdateError } = await supabase
+  const { error: candidateUpdateError } = await db
     .from('candidates')
     .update({ safety_score: breakdown.total })
     .eq('id', application.candidate_id)
@@ -72,7 +78,7 @@ export async function POST(request: NextRequest) {
     console.log('[scoring] candidate', application.candidate_id, '→ safety_score =', breakdown.total)
   }
 
-  const { error: applicationUpdateError } = await supabase
+  const { error: applicationUpdateError } = await db
     .from('applications')
     .update({ safety_score: breakdown.total })
     .eq('id', application_id)
