@@ -1,6 +1,6 @@
 # 🏠 SAFETY HOUSE — PROJECT STATUS
 
-> **Ultimo aggiornamento:** Maggio 2026  
+> **Ultimo aggiornamento:** 04/05/2026  
 > **Istruzioni per Claude VS Code:** Leggi questo file all'inizio di ogni sessione prima di fare qualsiasi cosa. Aggiornalo dopo ogni modifica importante.
 
 ---
@@ -45,8 +45,8 @@ Safety House è una piattaforma SaaS CRM verticale per la gestione del ciclo di 
 | Success | `#1BA35A` |
 | Warning | `#E89210` |
 | Danger | `#E83B2D` |
-| Font Display | Sora |
-| Font Body | DM Sans |
+| Font Display | Sora _(da integrare)_ |
+| Font Body | DM Sans _(da integrare)_ |
 
 ---
 
@@ -67,12 +67,38 @@ Safety House è una piattaforma SaaS CRM verticale per la gestione del ciclo di 
 - `agencies` — agenzie con piano abbonamento
 - `branches` — filiali per agenzia
 - `users` — agenti/direttori (separati da candidates)
-- `candidates` — profili inquilini con scoring
+- `candidates` — profili inquilini con scoring (`safety_score`, `vida_laboral_csv_code`)
 - `listings` — annunci immobiliari
-- `applications` — candidature (listing ↔ candidate)
+- `applications` — candidature (listing ↔ candidate), con `safety_score`
+- `procedures` — workflow post-selezione 5 step
+
+**Colonne aggiunte manualmente (SQL da eseguire se non già fatto):**
+```sql
+ALTER TABLE candidates  ADD COLUMN IF NOT EXISTS safety_score          numeric(4,2);
+ALTER TABLE candidates  ADD COLUMN IF NOT EXISTS vida_laboral_csv_code text;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS safety_score         numeric(4,2);
+
+CREATE TABLE IF NOT EXISTS procedures (
+  id                 uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  listing_id         uuid        REFERENCES listings(id)   ON DELETE CASCADE,
+  candidate_id       uuid        REFERENCES candidates(id) ON DELETE CASCADE,
+  agency_id          uuid        REFERENCES agencies(id)   ON DELETE CASCADE,
+  status             text        NOT NULL DEFAULT 'active',
+  step_current       integer     NOT NULL DEFAULT 1,
+  incasol_code       text,
+  archive_expires_at timestamptz,
+  created_at         timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE procedures ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "procedures_agency_access" ON procedures
+  FOR ALL USING (
+    agency_id IN (SELECT agency_id FROM users WHERE id = auth.uid())
+  );
+```
 
 **RLS:** Attiva su tutte le tabelle  
-**Trigger:** `handle_new_user()` — crea automaticamente record in `candidates` per ogni nuovo auth.user
+**Trigger:** `handle_new_user()` — crea automaticamente record in `candidates` per ogni nuovo auth.user  
+**Admin client:** `lib/supabase/admin.ts` con service role key — bypassa RLS per operazioni server-side (scoring)
 
 ---
 
@@ -82,29 +108,39 @@ Safety House è una piattaforma SaaS CRM verticale per la gestione del ciclo di 
 safety_house/
 ├── app/
 │   ├── (auth)/
-│   │   ├── login/page.tsx          ✅ Magic Link login
-│   │   └── verify/page.tsx         ✅ Redirect post-login
+│   │   ├── login/page.tsx                  ✅ Magic Link login
+│   │   └── verify/page.tsx                 ✅ Redirect post-login (→ /apply/complete o /dashboard)
 │   ├── (dashboard)/
-│   │   ├── layout.tsx              ✅ Sidebar + auth guard
-│   │   ├── dashboard/page.tsx      ✅ Home con stats
+│   │   ├── layout.tsx                      ✅ Sidebar + auth guard
+│   │   ├── dashboard/page.tsx              ✅ Home con stats reali (listings, candidature, procedimenti)
 │   │   ├── listings/
-│   │   │   ├── page.tsx            ✅ Lista annunci
-│   │   │   ├── new/page.tsx        ✅ Form nuovo annuncio
-│   │   │   └── [id]/page.tsx       ✅ Dettaglio annuncio
-│   │   ├── candidates/             ❌ Da fare
-│   │   ├── procedures/             ❌ Da fare
-│   │   └── settings/               ❌ Da fare
+│   │   │   ├── page.tsx                    ✅ Lista annunci
+│   │   │   ├── new/page.tsx                ✅ Form nuovo annuncio
+│   │   │   └── [id]/page.tsx               ✅ Dettaglio + candidature + score + Avvia Procedimento
+│   │   ├── candidates/
+│   │   │   └── page.tsx                    ✅ Lista candidati dell'agenzia con score
+│   │   ├── procedures/
+│   │   │   ├── page.tsx                    ✅ Lista procedimenti con barra progresso
+│   │   │   └── [id]/page.tsx               ✅ Workflow 5 step visivo (Incasòl + archiviazione)
+│   │   └── settings/                       ❌ Da fare
 │   ├── (candidate)/
-│   │   └── apply/[token]/page.tsx  ✅ Form candidatura pubblico
+│   │   └── apply/
+│   │       ├── [token]/page.tsx            ✅ Form candidatura 4 step (+ CSV Vida Laboral + mock upload)
+│   │       └── complete/page.tsx           ✅ Post-OTP: salva candidato + candidatura nel DB
 │   └── api/
-│       ├── listings/route.ts       ✅ POST crea annuncio
-│       └── auth/logout/route.ts    ✅ Logout
+│       ├── listings/route.ts               ✅ POST crea annuncio
+│       ├── scoring/route.ts                ✅ POST calcola e persiste safety_score (admin client)
+│       ├── procedures/route.ts             ✅ POST crea procedimento
+│       └── auth/logout/route.ts            ✅ Logout
 ├── lib/
 │   ├── supabase/
-│   │   ├── client.ts               ✅ Browser client
-│   │   └── server.ts               ✅ Server client
-├── proxy.ts                        ✅ Auth guard middleware
-└── .env.local                      ✅ (NON committare)
+│   │   ├── client.ts                       ✅ Browser client (anon key)
+│   │   ├── server.ts                       ✅ Server client (anon key + cookies)
+│   │   └── admin.ts                        ✅ Admin client (service role, bypassa RLS)
+│   └── scoring/
+│       └── algorithm.ts                    ✅ calculateScore() — solvibilità 40% + matching 20% + antifrode 40%
+├── proxy.ts                                ✅ Auth guard middleware
+└── .env.local                              ✅ (NON committare)
 ```
 
 ---
@@ -124,23 +160,37 @@ safety_house/
 - [x] Pagina lista annunci (`/listings`)
 - [x] Form nuovo annuncio (`/listings/new`)
 - [x] Dettaglio annuncio (`/listings/[id]`)
-- [x] Form candidatura pubblico (`/apply/[token]`)
+- [x] Form candidatura pubblico 4 step (`/apply/[token]`)
+- [x] Step 4: mock upload documenti (contratto, nómina, identità) + CSV Vida Laboral con validazione formato
 - [x] Flusso auth Magic Link → `/verify` → `/apply/complete` funzionante
-- [x] Testare flusso completo end-to-end _(testato su Vercel il 03/05/2026)_
-- [ ] Upload documenti (DNI, nómina, contratto) ❌ Da fare nel prossimo sprint
+- [x] Fix timing: `getUser()` con fallback `onAuthStateChange` in `/apply/complete`
+- [x] Testato end-to-end su Vercel il 03/05/2026
+- [ ] Upload documenti reali (DNI, nómina, contratto) ❌ Sprint futuro
 
-### Sprint 3 — Scoring Engine ❌ Da fare
-- [ ] Parser CSV Vida Laboral
-- [ ] Algoritmo scoring (antifrode 40% + solvibilità 40% + matching 20%)
-- [ ] Dashboard scoring agente
-- [ ] Score card candidato con breakdown
+### Sprint 3 — Scoring Engine base ✅ COMPLETATO (04/05/2026)
+- [x] `lib/scoring/algorithm.ts` — `calculateScore()` con 3 componenti pesati
+- [x] Solvibilità 40%: ratio reddito/affitto → 10/7/5/2 punti
+- [x] Matching 20%: penalità animali (-3), fumo (-3), occupanti (-2)
+- [x] Antifrode 40%: CSV Vida Laboral presente → 6/10, assente → 3/10 (placeholder)
+- [x] `POST /api/scoring` — calcola e persiste su `candidates.safety_score` + `applications.safety_score`
+- [x] Fix RLS: admin client (`lib/supabase/admin.ts`) per bypassare policies sugli update server-side
+- [x] Badge score colorato in `/listings/[id]` (verde >7, arancio 4-7, rosso <4)
+- [ ] Parser CSV Vida Laboral reale ❌ Sprint futuro
+- [ ] Score card candidato con breakdown dettagliato ❌ Sprint futuro
 
-### Sprint 4 — Procedimento Affitto ❌ Da fare
-- [ ] Workflow post-selezione (5 step)
-- [ ] Generazione contratto PDF
-- [ ] Integrazione firma digitale (Signaturit)
-- [ ] Sigillo Incasòl (codice 6 cifre obbligatorio)
-- [ ] GDPR data retention (auto-delete 90gg)
+### Sprint 4 — Procedimenti & Dashboard ✅ COMPLETATO (04/05/2026)
+- [x] Tabella `procedures` con RLS
+- [x] `POST /api/procedures` — crea procedimento con agency_id server-side
+- [x] `/procedures` — lista con barra progresso 1-5 e stato
+- [x] `/procedures/[id]` — workflow visivo 5 step: Seguro de Impago → Contratto → Firma Digitale → Incasòl → Archiviazione
+- [x] Step 4 Incasòl: campo 6 cifre obbligatorio con validazione
+- [x] Step 5 Archiviazione: setta `status='completed'` + `archive_expires_at` (ora + 90 giorni)
+- [x] Bottone "Avvia Procedimento" in `/listings/[id]` per ogni candidato
+- [x] `/candidates` — lista candidati dell'agenzia con score, contratto, reddito, numero candidature
+- [x] Dashboard: contatori reali (annunci attivi, candidature, procedimenti attivi) + ultimi 3 annunci
+- [ ] Generazione contratto PDF ❌ Sprint futuro
+- [ ] Integrazione firma digitale Signaturit ❌ Sprint futuro
+- [ ] GDPR auto-delete 90gg ❌ Sprint futuro
 
 ### Sprint 5 — Multi-tenant & Billing ❌ Da fare
 - [ ] Multi-filiale per agency_director
@@ -153,6 +203,15 @@ safety_house/
 - [ ] Bug fixing
 - [ ] Performance optimization
 - [ ] Deploy produzione + monitoring
+
+---
+
+## 🔜 DA FARE — PROSSIMA SESSIONE
+
+1. **`/candidates/[id]`** — pagina profilo candidato: tutti i dati del form, score breakdown (solvibilità / matching / antifrode), lista candidature attive su altri annunci
+2. **Score badge lista annunci** — in `/listings/page.tsx` aggiungere colonna con score medio delle candidature ricevute
+3. **Design system Sora + DM Sans** — integrare i font via `next/font` in `layout.tsx`
+4. **`/settings`** — pagina impostazioni agenzia: nome, logo, piano, gestione agenti
 
 ---
 
@@ -200,9 +259,12 @@ Ctrl+C
 2. **Non usare** `onMouseEnter`/`onMouseLeave` nei Server Components
 3. **Usa** `@/lib/supabase/server` nei Server Components
 4. **Usa** `@/lib/supabase/client` nei Client Components (`'use client'`)
-5. **RLS policy** sulla tabella `users`: non fare subquery ricorsive su `users` stessa
-6. **Il file** `proxy.ts` sostituisce `middleware.ts` in Next.js 16
-7. **Trigger** `handle_new_user()` crea automaticamente un record in `candidates` — gli agenti vanno inseriti manualmente in `users`
+5. **Usa** `@/lib/supabase/admin` solo nelle API route server-side che devono bypassare RLS
+6. **RLS policy** sulla tabella `users`: non fare subquery ricorsive su `users` stessa
+7. **Il file** `proxy.ts` sostituisce `middleware.ts` in Next.js 16
+8. **Trigger** `handle_new_user()` crea automaticamente un record in `candidates` — gli agenti vanno inseriti manualmente in `users`
+9. **contract_type** valori validi: `indefinido` / `temporal` / `autonomo`
+10. **employment_type** valori validi: `employed` / `self_employed` / `student` / `retired`
 
 ---
 
