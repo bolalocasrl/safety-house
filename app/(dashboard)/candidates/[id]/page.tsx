@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
+import { formatCurrency, formatDate } from '@/lib/format'
 
 type Candidate = {
   id: string
@@ -35,32 +37,9 @@ type ApplicationRow = {
   } | null
 }
 
-const EMPLOYMENT_LABELS: Record<string, string> = {
-  employed:     'Dipendente',
-  self_employed: 'Autonomo / Libero professionista',
-  student:      'Studente',
-  retired:      'Pensionato',
-}
-
-const CONTRACT_LABELS: Record<string, string> = {
-  indefinido: 'Tempo indeterminato',
-  temporal:   'Tempo determinato',
-  autonomo:   'Autonomo',
-}
-
-const APP_STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  pending:  { label: 'In attesa', color: '#1060E8', bg: 'rgba(16,96,232,0.12)'  },
-  approved: { label: 'Approvato', color: '#1BA35A', bg: 'rgba(27,163,90,0.12)' },
-  rejected: { label: 'Rifiutato', color: '#E83B2D', bg: 'rgba(232,59,45,0.12)' },
-}
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
-}
-
 function ScoreBadge({ score }: { score: number }) {
-  const color = score > 7 ? '#1BA35A' : score >= 4 ? '#E89210' : '#E83B2D'
-  const bg    = score > 7 ? 'rgba(27,163,90,0.12)' : score >= 4 ? 'rgba(232,146,16,0.12)' : 'rgba(232,59,45,0.12)'
+  const color = score > 7 ? 'var(--success)' : score >= 4 ? 'var(--warning)' : 'var(--danger)'
+  const bg    = score > 7 ? 'color-mix(in srgb, var(--success) 12%, transparent)' : score >= 4 ? 'color-mix(in srgb, var(--warning) 12%, transparent)' : 'color-mix(in srgb, var(--danger) 12%, transparent)'
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -74,10 +53,10 @@ function ScoreBadge({ score }: { score: number }) {
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #2E3540' }}>
-      <span style={{ color: '#6B7585', fontSize: '13px' }}>{label}</span>
-      <span style={{ color: '#fff', fontSize: '13px', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>
-        {value ?? <span style={{ color: '#6B7585' }}>—</span>}
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
+      <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>{label}</span>
+      <span style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>
+        {value ?? <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
       </span>
     </div>
   )
@@ -85,8 +64,8 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px', padding: '24px' }}>
-      <p style={{ color: '#6B7585', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+      <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
         {title}
       </p>
       {children}
@@ -97,6 +76,28 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 export default async function CandidateProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
+  const t = await getTranslations('candidates.detail')
+  const tc = await getTranslations('common')
+  const locale = await getLocale()
+
+  const EMPLOYMENT_LABELS: Record<string, string> = {
+    employed:      tc('employmentType.employed'),
+    self_employed: tc('employmentType.self_employed'),
+    student:       tc('employmentType.student'),
+    retired:       tc('employmentType.retired'),
+  }
+
+  const CONTRACT_LABELS: Record<string, string> = {
+    indefinido: tc('contractType.indefinido'),
+    temporal:   tc('contractType.temporal'),
+    autonomo:   tc('contractType.autonomo'),
+  }
+
+  const APP_STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+    pending:  { label: tc('status.pending'),  color: 'var(--primary)', bg: 'color-mix(in srgb, var(--primary) 12%, transparent)' },
+    approved: { label: tc('status.approved'), color: 'var(--success)', bg: 'color-mix(in srgb, var(--success) 12%, transparent)' },
+    rejected: { label: tc('status.rejected'), color: 'var(--danger)', bg: 'color-mix(in srgb, var(--danger) 12%, transparent)' },
+  }
 
   const [
     { data: candidate, error: candidateError },
@@ -125,25 +126,25 @@ export default async function CandidateProfilePage({ params }: { params: Promise
   return (
     <div>
       {/* Back link */}
-      <a href="/candidates" style={{ color: '#6B7585', fontSize: '13px', textDecoration: 'none', display: 'inline-block', marginBottom: '20px' }}>
-        ← Candidati
+      <a href="/candidates" style={{ color: 'var(--text-tertiary)', fontSize: '13px', textDecoration: 'none', display: 'inline-block', marginBottom: '20px' }}>
+        {t('backToCandidates')}
       </a>
 
       {/* Header */}
       <div style={{
-        background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px',
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px',
         padding: '28px 32px', marginBottom: '20px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px',
       }}>
         <div>
-          <h1 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, marginBottom: '6px' }}>
-            {c.full_name ?? 'Candidato senza nome'}
+          <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '6px' }}>
+            {c.full_name ?? t('unnamed')}
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <span style={{ color: '#9AA3B2', fontSize: '14px' }}>{c.email ?? '—'}</span>
-            <span style={{ color: '#2E3540' }}>·</span>
-            <span style={{ color: '#6B7585', fontSize: '13px' }}>
-              Registrato il {new Date(c.created_at).toLocaleDateString('it-IT')}
+            <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{c.email ?? tc('dash')}</span>
+            <span style={{ color: 'var(--border)' }}>·</span>
+            <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>
+              {t('registeredOn', { date: formatDate(c.created_at, locale) })}
             </span>
           </div>
         </div>
@@ -151,12 +152,12 @@ export default async function CandidateProfilePage({ params }: { params: Promise
           {c.safety_score != null ? (
             <div style={{ textAlign: 'center' }}>
               <ScoreBadge score={c.safety_score} />
-              <p style={{ color: '#6B7585', fontSize: '10px', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Safety Score
+              <p style={{ color: 'var(--text-tertiary)', fontSize: '10px', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                {t('safetyScore')}
               </p>
             </div>
           ) : (
-            <span style={{ color: '#6B7585', fontSize: '13px', fontStyle: 'italic' }}>Score non calcolato</span>
+            <span style={{ color: 'var(--text-tertiary)', fontSize: '13px', fontStyle: 'italic' }}>{t('scoreNotCalculated')}</span>
           )}
         </div>
       </div>
@@ -164,32 +165,32 @@ export default async function CandidateProfilePage({ params }: { params: Promise
       {/* Grid 2 colonne: Dati personali + Situazione lavorativa */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
 
-        <Card title="Dati personali">
+        <Card title={t('personalDataTitle')}>
           <div style={{ marginTop: '8px' }}>
-            <InfoRow label="Telefono"    value={c.phone} />
-            <InfoRow label="DNI / NIE"   value={c.dni_nie} />
-            <InfoRow label="Nazionalità" value={c.nationality} />
+            <InfoRow label={t('phone')} value={c.phone} />
+            <InfoRow label={t('dniNie')} value={c.dni_nie} />
+            <InfoRow label={t('nationality')} value={c.nationality} />
           </div>
         </Card>
 
-        <Card title="Situazione lavorativa">
+        <Card title={t('employmentTitle')}>
           <div style={{ marginTop: '8px' }}>
             <InfoRow
-              label="Tipo di impiego"
+              label={t('employmentType')}
               value={c.employment_type ? (EMPLOYMENT_LABELS[c.employment_type] ?? c.employment_type) : null}
             />
             <InfoRow
-              label="Tipo di contratto"
+              label={t('contractType')}
               value={c.contract_type ? (CONTRACT_LABELS[c.contract_type] ?? c.contract_type) : null}
             />
             <InfoRow
-              label="Reddito mensile netto"
-              value={c.monthly_income != null ? formatCurrency(c.monthly_income) : null}
+              label={t('monthlyIncome')}
+              value={c.monthly_income != null ? formatCurrency(c.monthly_income, locale) : null}
             />
             <InfoRow
-              label="Affitto max sostenibile (÷3)"
+              label={t('maxAffordableRent')}
               value={maxAffordableRent != null
-                ? <span style={{ color: '#1BA35A', fontWeight: 600 }}>{formatCurrency(maxAffordableRent)}/mese</span>
+                ? <span style={{ color: 'var(--success)', fontWeight: 600 }}>{formatCurrency(maxAffordableRent, locale)}{tc('perMonth')}</span>
                 : null
               }
             />
@@ -200,67 +201,67 @@ export default async function CandidateProfilePage({ params }: { params: Promise
       {/* Grid 2 colonne: Stile di vita + Documenti */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
 
-        <Card title="Stile di vita">
+        <Card title={t('lifestyleTitle')}>
           <div style={{ marginTop: '8px' }}>
             <InfoRow
-              label="Animali domestici"
+              label={t('pets')}
               value={c.has_pets == null ? null : (
-                <span style={{ color: c.has_pets ? '#E89210' : '#1BA35A' }}>
-                  {c.has_pets ? 'Sì' : 'No'}
+                <span style={{ color: c.has_pets ? 'var(--warning)' : 'var(--success)' }}>
+                  {c.has_pets ? tc('yes') : tc('no')}
                 </span>
               )}
             />
             <InfoRow
-              label="Fumatore"
+              label={t('smoker')}
               value={c.smoker == null ? null : (
-                <span style={{ color: c.smoker ? '#E89210' : '#1BA35A' }}>
-                  {c.smoker ? 'Sì' : 'No'}
+                <span style={{ color: c.smoker ? 'var(--warning)' : 'var(--success)' }}>
+                  {c.smoker ? tc('yes') : tc('no')}
                 </span>
               )}
             />
             <InfoRow
-              label="Numero occupanti"
+              label={t('occupants')}
               value={c.num_occupants != null ? String(c.num_occupants) : null}
             />
             {c.extra_notes && (
               <div style={{ paddingTop: '12px' }}>
-                <p style={{ color: '#6B7585', fontSize: '11px', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Note aggiuntive
+                <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {t('extraNotes')}
                 </p>
-                <p style={{ color: '#9AA3B2', fontSize: '13px', lineHeight: '1.6' }}>{c.extra_notes}</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6' }}>{c.extra_notes}</p>
               </div>
             )}
           </div>
         </Card>
 
-        <Card title="Documenti">
+        <Card title={t('documentsTitle')}>
           <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* CSV Vida Laboral */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#9AA3B2', fontSize: '13px' }}>CSV Vida Laboral</span>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{t('vidaLaboralCsv')}</span>
               {c.vida_laboral_csv_code ? (
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   padding: '4px 12px', borderRadius: '99px', fontSize: '12px', fontWeight: 500,
-                  color: '#1BA35A', background: 'rgba(27,163,90,0.12)',
+                  color: 'var(--success)', background: 'color-mix(in srgb, var(--success) 12%, transparent)',
                 }}>
-                  ✓ Presente
+                  {t('present')}
                 </span>
               ) : (
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   padding: '4px 12px', borderRadius: '99px', fontSize: '12px', fontWeight: 500,
-                  color: '#6B7585', background: 'rgba(107,117,133,0.12)',
+                  color: 'var(--text-tertiary)', background: 'color-mix(in srgb, var(--text-tertiary) 12%, transparent)',
                 }}>
-                  Assente
+                  {t('absent')}
                 </span>
               )}
             </div>
             {c.vida_laboral_csv_code && (
               <div>
-                <p style={{ color: '#6B7585', fontSize: '11px', marginBottom: '4px' }}>Codice</p>
+                <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', marginBottom: '4px' }}>{t('code')}</p>
                 <code style={{
-                  display: 'block', color: '#9AA3B2', background: '#0D1117',
+                  display: 'block', color: 'var(--text-secondary)', background: 'var(--bg)',
                   padding: '8px 12px', borderRadius: '6px', fontSize: '12px',
                   letterSpacing: '0.08em', fontFamily: 'monospace', wordBreak: 'break-all',
                 }}>
@@ -270,14 +271,14 @@ export default async function CandidateProfilePage({ params }: { params: Promise
             )}
 
             {/* Upload documenti — mock (non implementati) */}
-            <div style={{ borderTop: '1px solid #2E3540', paddingTop: '12px' }}>
-              <p style={{ color: '#6B7585', fontSize: '11px', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Documenti caricati
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+              <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {t('uploadedDocsTitle')}
               </p>
-              {(['Contratto di lavoro', 'Ultima nómina', 'Documento identità'] as const).map(doc => (
+              {[t('docContract'), t('docPayslip'), t('docIdentity')].map(doc => (
                 <div key={doc} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ color: '#9AA3B2', fontSize: '12px' }}>{doc}</span>
-                  <span style={{ color: '#6B7585', fontSize: '11px', fontStyle: 'italic' }}>Upload non ancora implementato</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{doc}</span>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontStyle: 'italic' }}>{t('uploadNotImplemented')}</span>
                 </div>
               ))}
             </div>
@@ -286,14 +287,14 @@ export default async function CandidateProfilePage({ params }: { params: Promise
       </div>
 
       {/* Candidature — full width */}
-      <div style={{ background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
         <div style={{
-          padding: '20px 24px', borderBottom: '1px solid #2E3540',
+          padding: '20px 24px', borderBottom: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <p style={{ color: '#fff', fontSize: '15px', fontWeight: 600 }}>Candidature</p>
+          <p style={{ color: 'var(--text)', fontSize: '15px', fontWeight: 600 }}>{t('applicationsTitle')}</p>
           <span style={{
-            background: 'rgba(16,96,232,0.12)', color: '#1060E8',
+            background: 'color-mix(in srgb, var(--primary) 12%, transparent)', color: 'var(--primary)',
             borderRadius: '99px', padding: '2px 10px', fontSize: '12px', fontWeight: 600,
           }}>
             {applications.length}
@@ -302,16 +303,16 @@ export default async function CandidateProfilePage({ params }: { params: Promise
 
         {applications.length === 0 ? (
           <div style={{ padding: '48px 24px', textAlign: 'center' }}>
-            <p style={{ color: '#6B7585', fontSize: '14px' }}>Nessuna candidatura</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>{t('applicationsEmpty')}</p>
           </div>
         ) : (
           <>
             <div style={{
               display: 'grid', gridTemplateColumns: '1fr 130px 110px 90px 100px 80px',
-              padding: '10px 24px', gap: '16px', borderBottom: '1px solid #2E3540',
+              padding: '10px 24px', gap: '16px', borderBottom: '1px solid var(--border)',
             }}>
-              {['Annuncio', 'Affitto', 'Ratio reddito', 'Score', 'Stato', 'Ricevuta'].map(h => (
-                <span key={h} style={{ color: '#6B7585', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {[t('colListing'), t('colRent'), t('colIncomeRatio'), t('colScore'), t('colStatus'), t('colReceived')].map((h, i) => (
+                <span key={i} style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   {h}
                 </span>
               ))}
@@ -328,37 +329,37 @@ export default async function CandidateProfilePage({ params }: { params: Promise
                   style={{
                     display: 'grid', gridTemplateColumns: '1fr 130px 110px 90px 100px 80px',
                     padding: '16px 24px', gap: '16px', alignItems: 'center',
-                    borderTop: i === 0 ? 'none' : '1px solid #2E3540',
+                    borderTop: i === 0 ? 'none' : '1px solid var(--border)',
                   }}
                 >
                   <div>
-                    <p style={{ color: '#fff', fontSize: '14px', fontWeight: 500, marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {app.listings?.title ?? '—'}
+                    <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {app.listings?.title ?? tc('dash')}
                     </p>
-                    <p style={{ color: '#6B7585', fontSize: '12px' }}>
+                    <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
                       {app.listings ? `${app.listings.address}, ${app.listings.city}` : ''}
                     </p>
                   </div>
 
-                  <p style={{ color: '#fff', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    {rent != null ? formatCurrency(rent) : '—'}
+                  <p style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                    {rent != null ? formatCurrency(rent, locale) : tc('dash')}
                   </p>
 
                   <div>
                     {ratio != null ? (
                       <>
                         <p style={{
-                          color: ratio >= 3 ? '#1BA35A' : ratio >= 2 ? '#E89210' : '#E83B2D',
+                          color: ratio >= 3 ? 'var(--success)' : ratio >= 2 ? 'var(--warning)' : 'var(--danger)',
                           fontSize: '13px', fontWeight: 600,
                         }}>
                           {ratio.toFixed(1)}×
                         </p>
-                        <p style={{ color: '#6B7585', fontSize: '11px' }}>
-                          {ratio >= 3 ? 'Ottimo' : ratio >= 2 ? 'Sufficiente' : 'Insufficiente'}
+                        <p style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>
+                          {ratio >= 3 ? t('ratioGood') : ratio >= 2 ? t('ratioOk') : t('ratioLow')}
                         </p>
                       </>
                     ) : (
-                      <span style={{ color: '#6B7585', fontSize: '13px' }}>—</span>
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>{tc('dash')}</span>
                     )}
                   </div>
 
@@ -367,13 +368,13 @@ export default async function CandidateProfilePage({ params }: { params: Promise
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                         padding: '3px 8px', borderRadius: '99px', fontSize: '12px', fontWeight: 700,
-                        color: app.safety_score > 7 ? '#1BA35A' : app.safety_score >= 4 ? '#E89210' : '#E83B2D',
-                        background: app.safety_score > 7 ? 'rgba(27,163,90,0.12)' : app.safety_score >= 4 ? 'rgba(232,146,16,0.12)' : 'rgba(232,59,45,0.12)',
+                        color: app.safety_score > 7 ? 'var(--success)' : app.safety_score >= 4 ? 'var(--warning)' : 'var(--danger)',
+                        background: app.safety_score > 7 ? 'color-mix(in srgb, var(--success) 12%, transparent)' : app.safety_score >= 4 ? 'color-mix(in srgb, var(--warning) 12%, transparent)' : 'color-mix(in srgb, var(--danger) 12%, transparent)',
                       }}>
                         {app.safety_score.toFixed(1)}
                       </span>
                     ) : (
-                      <span style={{ color: '#6B7585', fontSize: '13px' }}>—</span>
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>{tc('dash')}</span>
                     )}
                   </div>
 
@@ -391,13 +392,13 @@ export default async function CandidateProfilePage({ params }: { params: Promise
                       <a
                         href={`/listings/${app.listings.id}`}
                         style={{
-                          color: '#1060E8', fontSize: '12px', fontWeight: 500,
+                          color: 'var(--primary)', fontSize: '12px', fontWeight: 500,
                           textDecoration: 'none', padding: '5px 10px',
-                          borderRadius: '6px', border: '1px solid rgba(16,96,232,0.3)',
+                          borderRadius: '6px', border: '1px solid color-mix(in srgb, var(--primary) 30%, transparent)',
                           display: 'inline-block', whiteSpace: 'nowrap',
                         }}
                       >
-                        Annuncio
+                        {t('listingLink')}
                       </a>
                     )}
                   </div>

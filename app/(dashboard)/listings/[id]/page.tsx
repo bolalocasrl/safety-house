@@ -2,7 +2,9 @@
 
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useLocale, useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { formatCurrency, formatDate } from '@/lib/format'
 
 type OwnerRequirements = {
   no_pets?: boolean
@@ -38,25 +40,22 @@ type Application = {
   } | null
 }
 
-const STATUS_CONFIG: Record<Listing['status'], { label: string; color: string; bg: string }> = {
-  active: { label: 'Attivo',   color: '#1BA35A', bg: 'rgba(27,163,90,0.12)'  },
-  paused: { label: 'In pausa', color: '#E89210', bg: 'rgba(232,146,16,0.12)' },
-  closed: { label: 'Chiuso',   color: '#6B7585', bg: 'rgba(107,117,133,0.15)' },
-}
-
-const STATUS_OPTIONS: { value: Listing['status']; label: string }[] = [
-  { value: 'active', label: 'Attivo'   },
-  { value: 'paused', label: 'In pausa' },
-  { value: 'closed', label: 'Chiuso'   },
-]
-
-function formatRent(n: number) {
-  return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
+function StatusBadge({ label, color, bg }: { label: string; color: string; bg: string }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '6px',
+      padding: '4px 12px', borderRadius: '99px', fontSize: '13px', fontWeight: 500,
+      color, background: bg,
+    }}>
+      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: color }} />
+      {label}
+    </span>
+  )
 }
 
 function ScoreBadge({ score }: { score: number }) {
-  const color = score > 7 ? '#1BA35A' : score >= 4 ? '#E89210' : '#E83B2D'
-  const bg    = score > 7 ? 'rgba(27,163,90,0.12)' : score >= 4 ? 'rgba(232,146,16,0.12)' : 'rgba(232,59,45,0.12)'
+  const color = score > 7 ? 'var(--success)' : score >= 4 ? 'var(--warning)' : 'var(--danger)'
+  const bg    = score > 7 ? 'color-mix(in srgb, var(--success) 12%, transparent)' : score >= 4 ? 'color-mix(in srgb, var(--warning) 12%, transparent)' : 'color-mix(in srgb, var(--danger) 12%, transparent)'
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -68,23 +67,25 @@ function ScoreBadge({ score }: { score: number }) {
   )
 }
 
-function StatusBadge({ status }: { status: Listing['status'] }) {
-  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.closed
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: '6px',
-      padding: '4px 12px', borderRadius: '99px', fontSize: '13px', fontWeight: 500,
-      color: cfg.color, background: cfg.bg,
-    }}>
-      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: cfg.color }} />
-      {cfg.label}
-    </span>
-  )
-}
-
 export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const supabase = createClient()
+  const router = useRouter()
+  const t = useTranslations('listings.detail')
+  const tc = useTranslations('common')
+  const locale = useLocale()
+
+  const STATUS_CONFIG: Record<Listing['status'], { label: string; color: string; bg: string }> = {
+    active: { label: tc('status.active'), color: 'var(--success)', bg: 'color-mix(in srgb, var(--success) 12%, transparent)' },
+    paused: { label: tc('status.paused'), color: 'var(--warning)', bg: 'color-mix(in srgb, var(--warning) 12%, transparent)' },
+    closed: { label: tc('status.closed'), color: 'var(--text-tertiary)', bg: 'color-mix(in srgb, var(--text-tertiary) 15%, transparent)' },
+  }
+
+  const STATUS_OPTIONS: { value: Listing['status']; label: string }[] = [
+    { value: 'active', label: tc('status.active') },
+    { value: 'paused', label: tc('status.paused') },
+    { value: 'closed', label: tc('status.closed') },
+  ]
 
   const [listing, setListing] = useState<Listing | null>(null)
   const [applications, setApplications] = useState<Application[]>([])
@@ -94,7 +95,6 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   const [statusError, setStatusError] = useState<string | null>(null)
   const [scoringLoading, setScoringLoading] = useState<Record<string, boolean>>({})
   const [startingProcedure, setStartingProcedure] = useState<Record<string, boolean>>({})
-  const router = useRouter()
 
   useEffect(() => {
     async function load() {
@@ -138,7 +138,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       .single()
 
     if (error) {
-      setStatusError('Errore durante l\'aggiornamento dello stato.')
+      setStatusError(t('statusError'))
     } else {
       setListing(data as Listing)
     }
@@ -183,8 +183,8 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
   if (loadingPage) {
     return (
-      <div style={{ color: '#6B7585', fontSize: '14px', paddingTop: '48px', textAlign: 'center' }}>
-        Caricamento...
+      <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', paddingTop: '48px', textAlign: 'center' }}>
+        {tc('loading')}
       </div>
     )
   }
@@ -192,8 +192,8 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   if (notFound || !listing) {
     return (
       <div style={{ textAlign: 'center', paddingTop: '64px' }}>
-        <p style={{ color: '#fff', fontSize: '18px', marginBottom: '8px' }}>Annuncio non trovato</p>
-        <a href="/listings" style={{ color: '#1060E8', fontSize: '14px' }}>← Torna agli annunci</a>
+        <p style={{ color: 'var(--text)', fontSize: '18px', marginBottom: '8px' }}>{t('notFound')}</p>
+        <a href="/listings" style={{ color: 'var(--primary)', fontSize: '14px' }}>{t('backToListings')}</a>
       </div>
     )
   }
@@ -206,15 +206,15 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
         <div>
-          <a href="/listings" style={{ color: '#6B7585', fontSize: '13px', textDecoration: 'none', display: 'inline-block', marginBottom: '8px' }}>
-            ← Annunci
+          <a href="/listings" style={{ color: 'var(--text-tertiary)', fontSize: '13px', textDecoration: 'none', display: 'inline-block', marginBottom: '8px' }}>
+            {t('backToListings')}
           </a>
-          <h1 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, marginBottom: '6px' }}>
+          <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '6px' }}>
             {listing.title}
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <StatusBadge status={listing.status} />
-            <span style={{ color: '#6B7585', fontSize: '13px' }}>
+            <StatusBadge {...(STATUS_CONFIG[listing.status] ?? STATUS_CONFIG.closed)} />
+            <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>
               {listing.address}, {listing.city}
             </span>
           </div>
@@ -225,11 +225,11 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             href={`/listings/${id}/edit`}
             style={{
               padding: '10px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
-              color: '#9AA3B2', border: '1px solid #2E3540', textDecoration: 'none',
+              color: 'var(--text-secondary)', border: '1px solid var(--border)', textDecoration: 'none',
               display: 'inline-flex', alignItems: 'center',
             }}
           >
-            Modifica
+            {t('edit')}
           </a>
 
           <div style={{ position: 'relative' }}>
@@ -242,8 +242,8 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 borderRadius: '8px',
                 fontSize: '13px',
                 fontWeight: 500,
-                color: '#fff',
-                background: '#1060E8',
+                color: 'var(--primary-foreground)',
+                background: 'var(--primary)',
                 border: 'none',
                 cursor: statusUpdating ? 'not-allowed' : 'pointer',
                 opacity: statusUpdating ? 0.7 : 1,
@@ -252,12 +252,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
               }}
             >
               {STATUS_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value} style={{ background: '#1C2230' }}>
+                <option key={opt.value} value={opt.value} style={{ background: 'var(--surface)' }}>
                   {opt.label}
                 </option>
               ))}
             </select>
-            <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#fff', fontSize: '10px' }}>
+            <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text)', fontSize: '10px' }}>
               ▼
             </span>
           </div>
@@ -265,7 +265,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {statusError && (
-        <div style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', borderRadius: '8px', padding: '12px 16px', color: '#f87171', fontSize: '13px', marginBottom: '20px' }}>
+        <div style={{ background: 'color-mix(in srgb, var(--danger) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)', borderRadius: '8px', padding: '12px 16px', color: 'var(--danger)', fontSize: '13px', marginBottom: '20px' }}>
           {statusError}
         </div>
       )}
@@ -273,52 +273,52 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
 
         {/* Dettagli immobile */}
-        <div style={{ background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px', padding: '24px' }}>
-          <p style={{ color: '#6B7585', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
-            Dettagli immobile
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
+            {t('propertyDetailsTitle')}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {[
-              { label: 'Affitto mensile', value: formatRent(listing.monthly_rent) + '/mese' },
-              { label: 'Stanze',          value: String(listing.rooms) },
-              { label: 'Indirizzo',       value: listing.address        },
-              { label: 'Città',           value: listing.city           },
+              { label: t('monthlyRent'), value: formatCurrency(listing.monthly_rent, locale) + tc('perMonth') },
+              { label: t('rooms'),       value: String(listing.rooms) },
+              { label: t('address'),     value: listing.address },
+              { label: t('city'),        value: listing.city },
             ].map(row => (
               <div key={row.label}>
-                <p style={{ color: '#6B7585', fontSize: '11px', marginBottom: '4px' }}>{row.label}</p>
-                <p style={{ color: '#fff', fontSize: '14px', fontWeight: 500 }}>{row.value}</p>
+                <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', marginBottom: '4px' }}>{row.label}</p>
+                <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500 }}>{row.value}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Requisiti proprietario */}
-        <div style={{ background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px', padding: '24px' }}>
-          <p style={{ color: '#6B7585', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
-            Requisiti proprietario
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
+            {t('requirementsTitle')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <Req label="Niente animali"       active={!!req.no_pets} />
-            <Req label="Non fumatori"         active={!!req.no_smokers} />
-            <Req label="Massimo occupanti"    value={req.max_occupants != null ? String(req.max_occupants) : '—'} />
-            <Req label="Rapporto reddito min" value={req.min_income_ratio != null ? `${req.min_income_ratio}×` : '—'} />
+            <Req label={t('noPets')} active={!!req.no_pets} yes={tc('yes')} no={tc('no')} />
+            <Req label={t('noSmokers')} active={!!req.no_smokers} yes={tc('yes')} no={tc('no')} />
+            <Req label={t('maxOccupants')} value={req.max_occupants != null ? String(req.max_occupants) : tc('dash')} />
+            <Req label={t('minIncomeRatio')} value={req.min_income_ratio != null ? `${req.min_income_ratio}×` : tc('dash')} />
           </div>
         </div>
       </div>
 
       {/* Link pubblico candidatura */}
-      <div style={{ background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
-        <p style={{ color: '#6B7585', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
-          Link pubblico candidatura
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
+        <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
+          {t('publicLinkTitle')}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <code style={{
             flex: 1,
             padding: '10px 14px',
-            background: '#0D1117',
-            border: '1px solid #2E3540',
+            background: 'var(--bg)',
+            border: '1px solid var(--border)',
             borderRadius: '8px',
-            color: '#9AA3B2',
+            color: 'var(--text-secondary)',
             fontSize: '13px',
             wordBreak: 'break-all',
           }}>
@@ -329,15 +329,15 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             style={{
               padding: '10px 16px',
               background: 'transparent',
-              border: '1px solid #2E3540',
+              border: '1px solid var(--border)',
               borderRadius: '8px',
-              color: '#9AA3B2',
+              color: 'var(--text-secondary)',
               fontSize: '13px',
               cursor: 'pointer',
               flexShrink: 0,
             }}
           >
-            Copia
+            {t('copy')}
           </button>
           <a
             href={`/apply/${listing.public_link_token}`}
@@ -345,27 +345,27 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             rel="noopener noreferrer"
             style={{
               padding: '10px 16px',
-              background: 'rgba(16,96,232,0.12)',
-              border: '1px solid rgba(16,96,232,0.3)',
+              background: 'color-mix(in srgb, var(--primary) 12%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--primary) 30%, transparent)',
               borderRadius: '8px',
-              color: '#1060E8',
+              color: 'var(--primary)',
               fontSize: '13px',
               textDecoration: 'none',
               flexShrink: 0,
             }}
           >
-            Apri ↗
+            {t('open')}
           </a>
         </div>
       </div>
 
       {/* Candidature */}
-      <div style={{ background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px', overflow: 'hidden' }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #2E3540', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ color: '#fff', fontSize: '15px', fontWeight: 600 }}>Candidature</p>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p style={{ color: 'var(--text)', fontSize: '15px', fontWeight: 600 }}>{t('applicationsTitle')}</p>
           <span style={{
-            background: 'rgba(16,96,232,0.12)',
-            color: '#1060E8',
+            background: 'color-mix(in srgb, var(--primary) 12%, transparent)',
+            color: 'var(--primary)',
             borderRadius: '99px',
             padding: '2px 10px',
             fontSize: '12px',
@@ -377,16 +377,16 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
         {applications.length === 0 ? (
           <div style={{ padding: '48px 24px', textAlign: 'center' }}>
-            <p style={{ color: '#6B7585', fontSize: '14px' }}>Nessuna candidatura ancora</p>
-            <p style={{ color: '#6B7585', fontSize: '12px', marginTop: '4px' }}>
-              Condividi il link pubblico per raccogliere candidature
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>{t('applicationsEmptyTitle')}</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginTop: '4px' }}>
+              {t('applicationsEmptyDesc')}
             </p>
           </div>
         ) : (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 150px 120px 130px 90px 150px', padding: '10px 24px', gap: '16px', borderBottom: '1px solid #2E3540' }}>
-              {['Candidato', 'Contatto', 'Reddito mensile', 'Score', 'Ricevuta', ''].map(h => (
-                <span key={h} style={{ color: '#6B7585', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 150px 120px 130px 90px 150px', padding: '10px 24px', gap: '16px', borderBottom: '1px solid var(--border)' }}>
+              {[t('colCandidate'), t('colContact'), t('colIncome'), t('colScore'), t('colReceived'), ''].map((h, i) => (
+                <span key={i} style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</span>
               ))}
             </div>
             {applications.map((app, i) => (
@@ -398,25 +398,25 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                   padding: '16px 24px',
                   gap: '16px',
                   alignItems: 'center',
-                  borderTop: i === 0 ? 'none' : '1px solid #2E3540',
+                  borderTop: i === 0 ? 'none' : '1px solid var(--border)',
                 }}
               >
                 <div>
-                  <p style={{ color: '#fff', fontSize: '14px', fontWeight: 500 }}>
-                    {app.candidates?.full_name ?? '—'}
+                  <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500 }}>
+                    {app.candidates?.full_name ?? tc('dash')}
                   </p>
-                  <p style={{ color: '#6B7585', fontSize: '12px' }}>
+                  <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
                     {app.candidates?.employment_type ?? ''}
                   </p>
                 </div>
                 <div>
-                  <p style={{ color: '#9AA3B2', fontSize: '13px' }}>{app.candidates?.email ?? '—'}</p>
-                  <p style={{ color: '#6B7585', fontSize: '12px' }}>{app.candidates?.phone ?? ''}</p>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{app.candidates?.email ?? tc('dash')}</p>
+                  <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>{app.candidates?.phone ?? ''}</p>
                 </div>
-                <p style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>
+                <p style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 600 }}>
                   {app.candidates?.monthly_income != null
-                    ? new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(app.candidates.monthly_income)
-                    : '—'}
+                    ? formatCurrency(app.candidates.monthly_income, locale)
+                    : tc('dash')}
                 </p>
                 <div>
                   {app.safety_score != null ? (
@@ -427,10 +427,10 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       disabled={!!scoringLoading[app.id]}
                       style={{
                         padding: '5px 12px',
-                        background: 'rgba(16,96,232,0.1)',
-                        border: '1px solid rgba(16,96,232,0.25)',
+                        background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
+                        border: '1px solid color-mix(in srgb, var(--primary) 25%, transparent)',
                         borderRadius: '6px',
-                        color: '#1060E8',
+                        color: 'var(--primary)',
                         fontSize: '12px',
                         fontWeight: 500,
                         cursor: scoringLoading[app.id] ? 'not-allowed' : 'pointer',
@@ -438,12 +438,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {scoringLoading[app.id] ? '...' : 'Calcola Score'}
+                      {scoringLoading[app.id] ? '...' : t('calculateScore')}
                     </button>
                   )}
                 </div>
-                <p style={{ color: '#6B7585', fontSize: '12px' }}>
-                  {new Date(app.created_at).toLocaleDateString('it-IT')}
+                <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
+                  {formatDate(app.created_at, locale)}
                 </p>
                 <div style={{ textAlign: 'right' }}>
                   <button
@@ -451,10 +451,10 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                     disabled={!!startingProcedure[app.candidate_id]}
                     style={{
                       padding: '5px 12px',
-                      background: 'rgba(232,146,16,0.1)',
-                      border: '1px solid rgba(232,146,16,0.3)',
+                      background: 'color-mix(in srgb, var(--warning) 10%, transparent)',
+                      border: '1px solid color-mix(in srgb, var(--warning) 30%, transparent)',
                       borderRadius: '6px',
-                      color: '#E89210',
+                      color: 'var(--warning)',
                       fontSize: '12px',
                       fontWeight: 500,
                       cursor: startingProcedure[app.candidate_id] ? 'not-allowed' : 'pointer',
@@ -462,7 +462,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {startingProcedure[app.candidate_id] ? '...' : 'Avvia Procedimento'}
+                    {startingProcedure[app.candidate_id] ? '...' : t('startProcedure')}
                   </button>
                 </div>
               </div>
@@ -474,15 +474,15 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   )
 }
 
-function Req({ label, active, value }: { label: string; active?: boolean; value?: string }) {
+function Req({ label, active, value, yes, no }: { label: string; active?: boolean; value?: string; yes?: string; no?: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ color: '#9AA3B2', fontSize: '13px' }}>{label}</span>
+      <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{label}</span>
       {value !== undefined ? (
-        <span style={{ color: '#fff', fontSize: '13px', fontWeight: 500 }}>{value}</span>
+        <span style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 500 }}>{value}</span>
       ) : (
-        <span style={{ color: active ? '#1BA35A' : '#6B7585', fontSize: '13px', fontWeight: 500 }}>
-          {active ? 'Sì' : 'No'}
+        <span style={{ color: active ? 'var(--success)' : 'var(--text-tertiary)', fontSize: '13px', fontWeight: 500 }}>
+          {active ? yes : no}
         </span>
       )}
     </div>

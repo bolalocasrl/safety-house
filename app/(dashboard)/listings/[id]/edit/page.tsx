@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { createClient } from '@/lib/supabase/client'
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -26,14 +27,31 @@ const labelStyle: React.CSSProperties = {
   letterSpacing: '0.05em',
 }
 
-export default function NewListingPage() {
+type ListingForm = {
+  title: string
+  address: string
+  city: string
+  monthly_rent: string
+  rooms: string
+  no_pets: boolean
+  no_smokers: boolean
+  max_occupants: string
+  min_income_ratio: string
+}
+
+export default function EditListingPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
+  const supabase = createClient()
   const t = useTranslations('listings')
   const tc = useTranslations('common')
-  const [loading, setLoading] = useState(false)
+
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ListingForm>({
     title: '',
     address: '',
     city: '',
@@ -45,48 +63,107 @@ export default function NewListingPage() {
     min_income_ratio: '3',
   })
 
-  function set(field: keyof typeof form, value: string | boolean) {
+  useEffect(() => {
+    async function load() {
+      const { data, error: loadError } = await supabase
+        .from('listings')
+        .select('title, address, city, monthly_rent, rooms, owner_requirements')
+        .eq('id', id)
+        .single()
+
+      if (loadError || !data) {
+        setNotFound(true)
+        setLoading(false)
+        return
+      }
+
+      const req = (data.owner_requirements ?? {}) as {
+        no_pets?: boolean
+        no_smokers?: boolean
+        max_occupants?: number
+        min_income_ratio?: number
+      }
+
+      setForm({
+        title: data.title ?? '',
+        address: data.address ?? '',
+        city: data.city ?? '',
+        monthly_rent: String(data.monthly_rent ?? ''),
+        rooms: String(data.rooms ?? ''),
+        no_pets: !!req.no_pets,
+        no_smokers: !!req.no_smokers,
+        max_occupants: req.max_occupants != null ? String(req.max_occupants) : '2',
+        min_income_ratio: req.min_income_ratio != null ? String(req.min_income_ratio) : '3',
+      })
+      setLoading(false)
+    }
+
+    load()
+  }, [id])
+
+  function set(field: keyof ListingForm, value: string | boolean) {
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
+    setSaving(true)
     setError(null)
 
-    const res = await fetch('/api/listings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const { error: updateError } = await supabase
+      .from('listings')
+      .update({
         title: form.title,
         address: form.address,
         city: form.city,
         monthly_rent: Number(form.monthly_rent),
         rooms: Number(form.rooms),
-        no_pets: form.no_pets,
-        no_smokers: form.no_smokers,
-        max_occupants: Number(form.max_occupants),
-        min_income_ratio: Number(form.min_income_ratio),
-      }),
-    })
+        owner_requirements: {
+          no_pets: form.no_pets,
+          no_smokers: form.no_smokers,
+          max_occupants: Number(form.max_occupants),
+          min_income_ratio: Number(form.min_income_ratio),
+        },
+      })
+      .eq('id', id)
 
-    if (!res.ok) {
-      setError(t('new.error'))
-      setLoading(false)
+    if (updateError) {
+      setError(t('edit.error'))
+      setSaving(false)
       return
     }
 
-    router.push('/listings')
+    router.push(`/listings/${id}`)
+  }
+
+  if (loading) {
+    return (
+      <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', paddingTop: '48px', textAlign: 'center' }}>
+        {tc('loading')}
+      </div>
+    )
+  }
+
+  if (notFound) {
+    return (
+      <div style={{ textAlign: 'center', paddingTop: '64px' }}>
+        <p style={{ color: 'var(--text)', fontSize: '18px', marginBottom: '8px' }}>{t('edit.notFound')}</p>
+        <a href="/listings" style={{ color: 'var(--primary)', fontSize: '14px' }}>{t('edit.backToListings')}</a>
+      </div>
+    )
   }
 
   return (
     <div>
       <div style={{ marginBottom: '32px' }}>
+        <a href={`/listings/${id}`} style={{ color: 'var(--text-tertiary)', fontSize: '13px', textDecoration: 'none', display: 'inline-block', marginBottom: '8px' }}>
+          {t('edit.backToListing')}
+        </a>
         <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>
-          {t('new.title')}
+          {t('edit.title')}
         </h1>
         <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>
-          {t('new.subtitle')}
+          {t('edit.subtitle')}
         </p>
       </div>
 
@@ -99,7 +176,6 @@ export default function NewListingPage() {
       }}>
         <form onSubmit={handleSubmit}>
 
-          {/* Titolo */}
           <div style={{ marginBottom: '20px' }}>
             <label style={labelStyle}>{t('form.titleLabel')}</label>
             <input
@@ -112,7 +188,6 @@ export default function NewListingPage() {
             />
           </div>
 
-          {/* Indirizzo + Città */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
             <div>
               <label style={labelStyle}>{t('form.addressLabel')}</label>
@@ -138,7 +213,6 @@ export default function NewListingPage() {
             </div>
           </div>
 
-          {/* Affitto + Stanze */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
             <div>
               <label style={labelStyle}>{t('form.rentLabel')}</label>
@@ -166,14 +240,12 @@ export default function NewListingPage() {
             </div>
           </div>
 
-          {/* Divider */}
           <div style={{ borderTop: '1px solid var(--border)', marginBottom: '24px' }} />
 
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             {t('form.requirementsTitle')}
           </p>
 
-          {/* Checkboxes */}
           <div style={{ display: 'flex', gap: '24px', marginBottom: '20px', flexWrap: 'wrap' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
               <input
@@ -195,7 +267,6 @@ export default function NewListingPage() {
             </label>
           </div>
 
-          {/* Max occupants + Income ratio */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
             <div>
               <label style={labelStyle}>{t('form.maxOccupants')}</label>
@@ -240,7 +311,7 @@ export default function NewListingPage() {
           <div style={{ display: 'flex', gap: '12px' }}>
             <button
               type="submit"
-              disabled={loading}
+              disabled={saving}
               style={{
                 flex: 1,
                 padding: '12px',
@@ -250,14 +321,14 @@ export default function NewListingPage() {
                 borderRadius: '8px',
                 fontSize: '14px',
                 fontWeight: 500,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1,
+                cursor: saving ? 'not-allowed' : 'pointer',
+                opacity: saving ? 0.7 : 1,
               }}
             >
-              {loading ? t('new.submitting') : t('new.submit')}
+              {saving ? t('edit.saving') : t('edit.submit')}
             </button>
             <a
-              href="/listings"
+              href={`/listings/${id}`}
               style={{
                 padding: '12px 20px',
                 background: 'transparent',

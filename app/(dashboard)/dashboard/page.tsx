@@ -1,12 +1,13 @@
+import { getLocale, getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
-
-function formatRent(n: number) {
-  return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
-}
+import { formatCurrency } from '@/lib/format'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const t = await getTranslations('dashboard')
+  const tc = await getTranslations('common')
+  const locale = await getLocale()
 
   // Recupera agency_id dell'agente loggato
   const { data: userData } = await supabase
@@ -60,35 +61,35 @@ export default async function DashboardPage() {
     : { count: 0 }
 
   const stats = [
-    { label: 'Annunci attivi',  value: String(activeListingsCount ?? 0), color: '#1060E8' },
-    { label: 'Candidature',     value: String(applicationsCount  ?? 0), color: '#1BA35A' },
-    { label: 'Procedimenti',    value: String(activeProceduresCount ?? 0), color: '#E89210' },
+    { label: t('statActiveListings'), value: String(activeListingsCount ?? 0), color: 'var(--primary)' },
+    { label: t('statApplications'),   value: String(applicationsCount  ?? 0), color: 'var(--success)' },
+    { label: t('statProcedures'),     value: String(activeProceduresCount ?? 0), color: 'var(--warning)' },
   ]
 
   const hasActiveListings = (recentListings ?? []).length > 0
 
   return (
     <div>
-      <h1 style={{ color: '#fff', fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>
-        Dashboard
+      <h1 style={{ color: 'var(--text)', fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>
+        {t('title')}
       </h1>
-      <p style={{ color: '#6B7585', marginBottom: '32px' }}>
-        Benvenuto, {user?.email}
+      <p style={{ color: 'var(--text-tertiary)', marginBottom: '32px' }}>
+        {t('welcome', { email: user?.email ?? '' })}
       </p>
 
       {/* Stats cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
         {stats.map(stat => (
           <div key={stat.label} style={{
-            background: '#1C2230',
-            border: '1px solid #2E3540',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
             borderRadius: '12px',
             padding: '24px',
           }}>
             <div style={{ color: stat.color, fontSize: '32px', fontWeight: '700' }}>
               {stat.value}
             </div>
-            <div style={{ color: '#6B7585', fontSize: '14px', marginTop: '4px' }}>
+            <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', marginTop: '4px' }}>
               {stat.label}
             </div>
           </div>
@@ -98,23 +99,23 @@ export default async function DashboardPage() {
       {/* Ultimi annunci attivi o empty state */}
       {hasActiveListings ? (
         <div style={{
-          background: '#1C2230',
-          border: '1px solid #2E3540',
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
           borderRadius: '12px',
           overflow: 'hidden',
         }}>
           <div style={{
             padding: '20px 24px',
-            borderBottom: '1px solid #2E3540',
+            borderBottom: '1px solid var(--border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}>
-            <p style={{ color: '#fff', fontSize: '15px', fontWeight: 600 }}>Annunci attivi recenti</p>
+            <p style={{ color: 'var(--text)', fontSize: '15px', fontWeight: 600 }}>{t('recentListingsTitle')}</p>
             <a href="/listings" style={{
-              color: '#1060E8', fontSize: '13px', textDecoration: 'none', fontWeight: 500,
+              color: 'var(--primary)', fontSize: '13px', textDecoration: 'none', fontWeight: 500,
             }}>
-              Vedi tutti →
+              {t('viewAll')}
             </a>
           </div>
 
@@ -130,28 +131,28 @@ export default async function DashboardPage() {
                   alignItems: 'center',
                   gap: '16px',
                   padding: '16px 24px',
-                  borderTop: i === 0 ? 'none' : '1px solid #2E3540',
+                  borderTop: i === 0 ? 'none' : '1px solid var(--border)',
                   textDecoration: 'none',
                 }}
               >
                 <div>
-                  <p style={{ color: '#fff', fontSize: '14px', fontWeight: 500, marginBottom: '2px' }}>
+                  <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, marginBottom: '2px' }}>
                     {listing.title}
                   </p>
-                  <p style={{ color: '#6B7585', fontSize: '12px' }}>
-                    {listing.address}, {listing.city} · {formatRent(listing.monthly_rent)}/mese
+                  <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
+                    {listing.address}, {listing.city} · {formatCurrency(listing.monthly_rent, locale)}{tc('perMonth')}
                   </p>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   <span style={{
-                    background: 'rgba(16,96,232,0.12)',
-                    color: '#1060E8',
+                    background: 'color-mix(in srgb, var(--primary) 12%, transparent)',
+                    color: 'var(--primary)',
                     borderRadius: '99px',
                     padding: '3px 10px',
                     fontSize: '12px',
                     fontWeight: 600,
                   }}>
-                    {appCount} {appCount === 1 ? 'candidatura' : 'candidature'}
+                    {t('applicationsCount', { count: appCount })}
                   </span>
                 </div>
               </a>
@@ -160,28 +161,28 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div style={{
-          background: '#1C2230',
-          border: '1px solid #2E3540',
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
           borderRadius: '12px',
           padding: '48px',
           textAlign: 'center',
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏠</div>
-          <h2 style={{ color: '#fff', fontSize: '20px', marginBottom: '8px' }}>
-            Inizia creando il primo annuncio
+          <h2 style={{ color: 'var(--text)', fontSize: '20px', marginBottom: '8px' }}>
+            {t('emptyTitle')}
           </h2>
-          <p style={{ color: '#6B7585', marginBottom: '24px' }}>
-            Crea un annuncio per iniziare a raccogliere candidature verificate.
+          <p style={{ color: 'var(--text-tertiary)', marginBottom: '24px' }}>
+            {t('emptyDesc')}
           </p>
           <a href="/listings/new" style={{
-            background: '#1060E8',
-            color: '#fff',
+            background: 'var(--primary)',
+            color: 'var(--primary-foreground)',
             padding: '12px 24px',
             borderRadius: '8px',
             textDecoration: 'none',
             fontSize: '14px',
           }}>
-            Crea annuncio
+            {t('createListing')}
           </a>
         </div>
       )}

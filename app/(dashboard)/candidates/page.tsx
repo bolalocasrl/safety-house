@@ -1,5 +1,7 @@
 import { Suspense } from 'react'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
+import { formatCurrency, formatDate } from '@/lib/format'
 
 type Candidate = {
   id: string
@@ -12,19 +14,9 @@ type Candidate = {
   applications_count: number
 }
 
-const CONTRACT_LABELS: Record<string, string> = {
-  indefinido: 'Indeterminato',
-  temporal:   'Determinato',
-  autonomo:   'Autonomo',
-}
-
-function formatIncome(n: number) {
-  return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
-}
-
 function ScoreBadge({ score }: { score: number }) {
-  const color = score > 7 ? '#1BA35A' : score >= 4 ? '#E89210' : '#E83B2D'
-  const bg    = score > 7 ? 'rgba(27,163,90,0.12)' : score >= 4 ? 'rgba(232,146,16,0.12)' : 'rgba(232,59,45,0.12)'
+  const color = score > 7 ? 'var(--success)' : score >= 4 ? 'var(--warning)' : 'var(--danger)'
+  const bg    = score > 7 ? 'color-mix(in srgb, var(--success) 12%, transparent)' : score >= 4 ? 'color-mix(in srgb, var(--warning) 12%, transparent)' : 'color-mix(in srgb, var(--danger) 12%, transparent)'
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -42,7 +34,7 @@ function TableSkeleton() {
       {[...Array(4)].map((_, i) => (
         <div key={i} style={{
           height: '68px',
-          background: '#1C2230',
+          background: 'var(--surface)',
           borderRadius: i === 0 ? '12px 12px 0 0' : i === 3 ? '0 0 12px 12px' : '0',
           opacity: 1 - i * 0.18,
         }} />
@@ -51,36 +43,37 @@ function TableSkeleton() {
   )
 }
 
-function EmptyState() {
+async function EmptyState() {
+  const t = await getTranslations('candidates.list')
   return (
     <div style={{
-      background: '#1C2230',
-      border: '1px solid #2E3540',
+      background: 'var(--surface)',
+      border: '1px solid var(--border)',
       borderRadius: '12px',
       padding: '64px 32px',
       textAlign: 'center',
     }}>
       <div style={{
         width: '56px', height: '56px', borderRadius: '12px',
-        background: 'rgba(16,96,232,0.12)',
+        background: 'color-mix(in srgb, var(--primary) 12%, transparent)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         margin: '0 auto 20px', fontSize: '28px',
       }}>
         👥
       </div>
-      <h2 style={{ color: '#fff', fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
-        Nessun candidato ancora
+      <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
+        {t('emptyTitle')}
       </h2>
-      <p style={{ color: '#6B7585', fontSize: '14px', maxWidth: '360px', margin: '0 auto 28px' }}>
-        I candidati appariranno qui non appena invieranno una candidatura tramite il link pubblico di un annuncio.
+      <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', maxWidth: '360px', margin: '0 auto 28px' }}>
+        {t('emptyDesc')}
       </p>
       <a href="/listings" style={{
         display: 'inline-flex', alignItems: 'center', gap: '8px',
-        background: '#1060E8', color: '#fff',
+        background: 'var(--primary)', color: 'var(--primary-foreground)',
         padding: '10px 20px', borderRadius: '8px',
         textDecoration: 'none', fontSize: '14px', fontWeight: 500,
       }}>
-        Vai agli annunci
+        {t('emptyCta')}
       </a>
     </div>
   )
@@ -88,6 +81,15 @@ function EmptyState() {
 
 async function CandidatesTable() {
   const supabase = await createClient()
+  const t = await getTranslations('candidates.list')
+  const tc = await getTranslations('common')
+  const locale = await getLocale()
+
+  const CONTRACT_LABELS: Record<string, string> = {
+    indefinido: tc('contractType.indefinido'),
+    temporal:   tc('contractType.temporal'),
+    autonomo:   tc('contractType.autonomo'),
+  }
 
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -120,10 +122,10 @@ async function CandidatesTable() {
   if (error) {
     return (
       <div style={{
-        background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)',
-        borderRadius: '12px', padding: '20px 24px', color: '#f87171', fontSize: '14px',
+        background: 'color-mix(in srgb, var(--danger) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)',
+        borderRadius: '12px', padding: '20px 24px', color: 'var(--danger)', fontSize: '14px',
       }}>
-        Errore nel caricamento dei candidati. Riprova tra qualche istante.
+        {t('error')}
       </div>
     )
   }
@@ -148,12 +150,12 @@ async function CandidatesTable() {
   const COLS = '1fr 180px 150px 90px 100px 100px 90px'
 
   return (
-    <div style={{ background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px', overflow: 'hidden' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
 
       {/* Header */}
-      <div style={{ display: 'grid', gridTemplateColumns: COLS, padding: '12px 24px', gap: '16px', borderBottom: '1px solid #2E3540' }}>
-        {['Candidato', 'Email', 'Contratto / Reddito', 'Score', 'Candidature', 'Registrato', ''].map(h => (
-          <span key={h} style={{ color: '#6B7585', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: COLS, padding: '12px 24px', gap: '16px', borderBottom: '1px solid var(--border)' }}>
+        {[t('colCandidate'), t('colEmail'), t('colContractIncome'), t('colScore'), t('colApplications'), t('colRegistered'), ''].map((h, i) => (
+          <span key={i} style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             {h}
           </span>
         ))}
@@ -169,28 +171,28 @@ async function CandidatesTable() {
             padding: '16px 24px',
             gap: '16px',
             alignItems: 'center',
-            borderTop: i === 0 ? 'none' : '1px solid #2E3540',
+            borderTop: i === 0 ? 'none' : '1px solid var(--border)',
           }}
         >
           {/* Nome */}
           <div>
-            <p style={{ color: '#fff', fontSize: '14px', fontWeight: 500, marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {c.full_name ?? '—'}
+            <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {c.full_name ?? tc('dash')}
             </p>
           </div>
 
           {/* Email */}
-          <p style={{ color: '#9AA3B2', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {c.email ?? '—'}
+          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {c.email ?? tc('dash')}
           </p>
 
           {/* Contratto / Reddito */}
           <div>
-            <p style={{ color: '#fff', fontSize: '13px', fontWeight: 500, marginBottom: '2px' }}>
-              {c.contract_type ? (CONTRACT_LABELS[c.contract_type] ?? c.contract_type) : '—'}
+            <p style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 500, marginBottom: '2px' }}>
+              {c.contract_type ? (CONTRACT_LABELS[c.contract_type] ?? c.contract_type) : tc('dash')}
             </p>
-            <p style={{ color: '#6B7585', fontSize: '12px' }}>
-              {c.monthly_income != null ? formatIncome(c.monthly_income) + '/mese' : '—'}
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
+              {c.monthly_income != null ? formatCurrency(c.monthly_income, locale) + tc('perMonth') : tc('dash')}
             </p>
           </div>
 
@@ -198,14 +200,14 @@ async function CandidatesTable() {
           <div>
             {c.safety_score != null
               ? <ScoreBadge score={c.safety_score} />
-              : <span style={{ color: '#6B7585', fontSize: '13px' }}>—</span>
+              : <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>{tc('dash')}</span>
             }
           </div>
 
           {/* Candidature */}
           <div>
             <span style={{
-              background: 'rgba(16,96,232,0.12)', color: '#1060E8',
+              background: 'color-mix(in srgb, var(--primary) 12%, transparent)', color: 'var(--primary)',
               borderRadius: '99px', padding: '3px 10px',
               fontSize: '12px', fontWeight: 600,
             }}>
@@ -214,8 +216,8 @@ async function CandidatesTable() {
           </div>
 
           {/* Registrato */}
-          <p style={{ color: '#6B7585', fontSize: '12px' }}>
-            {new Date(c.created_at).toLocaleDateString('it-IT')}
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
+            {formatDate(c.created_at, locale)}
           </p>
 
           {/* Azione */}
@@ -223,13 +225,13 @@ async function CandidatesTable() {
             <a
               href={`/candidates/${c.id}`}
               style={{
-                color: '#1060E8', fontSize: '13px', fontWeight: 500,
+                color: 'var(--primary)', fontSize: '13px', fontWeight: 500,
                 textDecoration: 'none', padding: '6px 12px',
-                borderRadius: '6px', border: '1px solid rgba(16,96,232,0.3)',
+                borderRadius: '6px', border: '1px solid color-mix(in srgb, var(--primary) 30%, transparent)',
                 display: 'inline-block', whiteSpace: 'nowrap',
               }}
             >
-              Vedi profilo
+              {t('viewProfile')}
             </a>
           </div>
         </div>
@@ -238,15 +240,17 @@ async function CandidatesTable() {
   )
 }
 
-export default function CandidatesPage() {
+export default async function CandidatesPage() {
+  const t = await getTranslations('candidates.list')
+
   return (
     <div>
       <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ color: '#fff', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>
-          Candidati
+        <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>
+          {t('title')}
         </h1>
-        <p style={{ color: '#6B7585', fontSize: '14px' }}>
-          Tutti i candidati che hanno fatto richiesta su un tuo annuncio
+        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>
+          {t('subtitle')}
         </p>
       </div>
 
