@@ -44,6 +44,11 @@
       "3": "Firma Digital",
       "4": "Incasòl",
       "5": "Archivo"
+    },
+    "documentStatus": {
+      "verified": "✓ Verificado",
+      "suspicious": "⚠ Sospechoso",
+      "fraudulent": "✗ Fraude detectado"
     }
   },
   "dashboard": {
@@ -135,6 +140,7 @@
       "colContact": "Contacto",
       "colIncome": "Ingresos mensuales",
       "colScore": "Puntuación",
+      "colDocument": "Documento",
       "colReceived": "Recibida",
       "calculateScore": "Calcular puntuación",
       "startProcedure": "Iniciar trámite",
@@ -149,6 +155,7 @@
       "colEmail": "Email",
       "colContractIncome": "Contrato / Ingresos",
       "colScore": "Puntuación",
+      "colDocument": "Documento",
       "colApplications": "Candidaturas",
       "colRegistered": "Registrado",
       "viewProfile": "Ver perfil",

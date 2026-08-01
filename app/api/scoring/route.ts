@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
   const { data: candidate, error: candidateError } = await db
     .from('candidates')
-    .select('monthly_income, has_pets, smoker, num_occupants, vida_laboral_csv_code')
+    .select('monthly_income, has_pets, smoker, num_occupants, vida_laboral_csv_code, document_status')
     .eq('id', application.candidate_id)
     .single()
 
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
       smoker: candidate.smoker ?? false,
       num_occupants: candidate.num_occupants ?? 1,
       vida_laboral_csv_code: candidate.vida_laboral_csv_code ?? null,
+      document_status: candidate.document_status ?? 'verified',
     },
     {
       monthly_rent: listing.monthly_rent,

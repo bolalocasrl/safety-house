@@ -44,6 +44,11 @@
       "3": "Firma Digitale",
       "4": "Incasòl",
       "5": "Archiviazione"
+    },
+    "documentStatus": {
+      "verified": "✓ Verificato",
+      "suspicious": "⚠ Sospetto",
+      "fraudulent": "✗ Frode rilevata"
     }
   },
   "dashboard": {
@@ -135,6 +140,7 @@
       "colContact": "Contatto",
       "colIncome": "Reddito mensile",
       "colScore": "Score",
+      "colDocument": "Documento",
       "colReceived": "Ricevuta",
       "calculateScore": "Calcola Score",
       "startProcedure": "Avvia Procedimento",
@@ -149,6 +155,7 @@
       "colEmail": "Email",
       "colContractIncome": "Contratto / Reddito",
       "colScore": "Score",
+      "colDocument": "Documento",
       "colApplications": "Candidature",
       "colRegistered": "Registrato",
       "viewProfile": "Vedi profilo",

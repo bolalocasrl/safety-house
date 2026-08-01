@@ -1,9 +1,12 @@
+export type DocumentStatus = 'verified' | 'suspicious' | 'fraudulent'
+
 export type CandidateInput = {
   monthly_income: number
   has_pets: boolean
   smoker: boolean
   num_occupants: number
   vida_laboral_csv_code: string | null
+  document_status: DocumentStatus
 }
 
 export type ListingInput = {
@@ -19,7 +22,7 @@ export type ListingInput = {
 export type ScoreBreakdown = {
   solvency: number  // raw 0-10
   matching: number  // raw 0-10
-  fraud: number     // raw 0-10 (placeholder)
+  fraud: number     // raw 0-10
   total: number     // weighted 1-10
 }
 
@@ -40,8 +43,14 @@ export function calculateScore(candidate: CandidateInput, listing: ListingInput)
   if (req.max_occupants != null && candidate.num_occupants > req.max_occupants)    matching -= 2
   matching = Math.max(0, matching)
 
-  // Antifrode 40% — placeholder: CSV Vida Laboral presente = 6, assente = 3
-  const fraud = candidate.vida_laboral_csv_code ? 6 : 3
+  // Antifrode 40% — deriva dall'esito reale della verifica documentale (document_status):
+  // fraudolento azzera la componente (trascina il punteggio totale in zona rossa anche
+  // se solvibilità/matching sono buoni), sospetto applica una penalità media, verificato
+  // resta pieno con un piccolo premio se è presente anche il CSV Vida Laboral.
+  let fraud: number
+  if (candidate.document_status === 'fraudulent')       fraud = 0
+  else if (candidate.document_status === 'suspicious')  fraud = 4
+  else                                                   fraud = candidate.vida_laboral_csv_code ? 10 : 6
 
   // Score pesato, clampato [1, 10], arrotondato a 1 decimale
   const raw = solvency * 0.40 + matching * 0.20 + fraud * 0.40

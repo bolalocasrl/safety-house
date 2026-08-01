@@ -44,6 +44,11 @@
       "3": "Digital Signature",
       "4": "Incasòl",
       "5": "Archiving"
+    },
+    "documentStatus": {
+      "verified": "✓ Verified",
+      "suspicious": "⚠ Suspicious",
+      "fraudulent": "✗ Fraud detected"
     }
   },
   "dashboard": {
@@ -135,6 +140,7 @@
       "colContact": "Contact",
       "colIncome": "Monthly income",
       "colScore": "Score",
+      "colDocument": "Document",
       "colReceived": "Received",
       "calculateScore": "Calculate score",
       "startProcedure": "Start procedure",
@@ -149,6 +155,7 @@
       "colEmail": "Email",
       "colContractIncome": "Contract / Income",
       "colScore": "Score",
+      "colDocument": "Document",
       "colApplications": "Applications",
       "colRegistered": "Registered",
       "viewProfile": "View profile",

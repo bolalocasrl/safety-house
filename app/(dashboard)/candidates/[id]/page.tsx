@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency, formatDate } from '@/lib/format'
+import { DocumentStatusBadge, type DocumentStatus } from '@/components/document-status-badge'
 
 type Candidate = {
   id: string
@@ -19,6 +20,7 @@ type Candidate = {
   extra_notes: string | null
   vida_laboral_csv_code: string | null
   safety_score: number | null
+  document_status: DocumentStatus
   created_at: string
 }
 
@@ -99,13 +101,19 @@ export default async function CandidateProfilePage({ params }: { params: Promise
     rejected: { label: tc('status.rejected'), color: 'var(--danger)', bg: 'color-mix(in srgb, var(--danger) 12%, transparent)' },
   }
 
+  const DOC_STATUS_LABELS: Record<DocumentStatus, string> = {
+    verified:   tc('documentStatus.verified'),
+    suspicious: tc('documentStatus.suspicious'),
+    fraudulent: tc('documentStatus.fraudulent'),
+  }
+
   const [
     { data: candidate, error: candidateError },
     { data: applicationsData },
   ] = await Promise.all([
     supabase
       .from('candidates')
-      .select('id, full_name, email, phone, dni_nie, nationality, employment_type, contract_type, monthly_income, has_pets, smoker, num_occupants, extra_notes, vida_laboral_csv_code, safety_score, created_at')
+      .select('id, full_name, email, phone, dni_nie, nationality, employment_type, contract_type, monthly_income, has_pets, smoker, num_occupants, extra_notes, vida_laboral_csv_code, safety_score, document_status, created_at')
       .eq('id', id)
       .single(),
 
@@ -148,7 +156,8 @@ export default async function CandidateProfilePage({ params }: { params: Promise
             </span>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <DocumentStatusBadge status={c.document_status} label={DOC_STATUS_LABELS[c.document_status] ?? DOC_STATUS_LABELS.verified} />
           {c.safety_score != null ? (
             <div style={{ textAlign: 'center' }}>
               <ScoreBadge score={c.safety_score} />

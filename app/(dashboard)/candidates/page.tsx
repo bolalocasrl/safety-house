@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency, formatDate } from '@/lib/format'
+import { DocumentStatusBadge, type DocumentStatus } from '@/components/document-status-badge'
 
 type Candidate = {
   id: string
@@ -10,6 +11,7 @@ type Candidate = {
   contract_type: string | null
   monthly_income: number | null
   safety_score: number | null
+  document_status: DocumentStatus
   created_at: string
   applications_count: number
 }
@@ -91,6 +93,12 @@ async function CandidatesTable() {
     autonomo:   tc('contractType.autonomo'),
   }
 
+  const DOC_STATUS_LABELS: Record<DocumentStatus, string> = {
+    verified:   tc('documentStatus.verified'),
+    suspicious: tc('documentStatus.suspicious'),
+    fraudulent: tc('documentStatus.fraudulent'),
+  }
+
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: userData } = await supabase
@@ -116,7 +124,7 @@ async function CandidatesTable() {
   // Tutte le applications per questi listing, con i dati del candidato
   const { data: applications, error } = await supabase
     .from('applications')
-    .select('candidate_id, candidates(id, full_name, email, contract_type, monthly_income, safety_score, created_at)')
+    .select('candidate_id, candidates(id, full_name, email, contract_type, monthly_income, safety_score, document_status, created_at)')
     .in('listing_id', listingIds)
 
   if (error) {
@@ -142,19 +150,26 @@ async function CandidatesTable() {
     }
   }
 
+  // Classifica candidati verificati: punteggio più alto in cima, i non ancora
+  // valutati in coda (non sono "peggiori", semplicemente non hanno ancora uno score).
   const candidates = Array.from(candidateMap.values())
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .sort((a, b) => {
+      if (a.safety_score == null && b.safety_score == null) return 0
+      if (a.safety_score == null) return 1
+      if (b.safety_score == null) return -1
+      return b.safety_score - a.safety_score
+    })
 
   if (candidates.length === 0) return <EmptyState />
 
-  const COLS = '1fr 180px 150px 90px 100px 100px 90px'
+  const COLS = '1fr 170px 140px 80px 140px 90px 100px 90px'
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
 
       {/* Header */}
       <div style={{ display: 'grid', gridTemplateColumns: COLS, padding: '12px 24px', gap: '16px', borderBottom: '1px solid var(--border)' }}>
-        {[t('colCandidate'), t('colEmail'), t('colContractIncome'), t('colScore'), t('colApplications'), t('colRegistered'), ''].map((h, i) => (
+        {[t('colCandidate'), t('colEmail'), t('colContractIncome'), t('colScore'), t('colDocument'), t('colApplications'), t('colRegistered'), ''].map((h, i) => (
           <span key={i} style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             {h}
           </span>
@@ -202,6 +217,11 @@ async function CandidatesTable() {
               ? <ScoreBadge score={c.safety_score} />
               : <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>{tc('dash')}</span>
             }
+          </div>
+
+          {/* Documento */}
+          <div>
+            <DocumentStatusBadge status={c.document_status} label={DOC_STATUS_LABELS[c.document_status] ?? DOC_STATUS_LABELS.verified} />
           </div>
 
           {/* Candidature */}

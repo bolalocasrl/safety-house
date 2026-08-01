@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/format'
+import { DocumentStatusBadge, type DocumentStatus } from '@/components/document-status-badge'
 
 type OwnerRequirements = {
   no_pets?: boolean
@@ -37,6 +38,7 @@ type Application = {
     phone: string
     employment_type: string
     monthly_income: number
+    document_status: DocumentStatus
   } | null
 }
 
@@ -87,6 +89,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     { value: 'closed', label: tc('status.closed') },
   ]
 
+  const DOC_STATUS_LABELS: Record<DocumentStatus, string> = {
+    verified:   tc('documentStatus.verified'),
+    suspicious: tc('documentStatus.suspicious'),
+    fraudulent: tc('documentStatus.fraudulent'),
+  }
+
   const [listing, setListing] = useState<Listing | null>(null)
   const [applications, setApplications] = useState<Application[]>([])
   const [loadingPage, setLoadingPage] = useState(true)
@@ -114,7 +122,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
       const { data: appsData } = await supabase
         .from('applications')
-        .select('id, created_at, safety_score, candidate_id, candidates(full_name, email, phone, employment_type, monthly_income)')
+        .select('id, created_at, safety_score, candidate_id, candidates(full_name, email, phone, employment_type, monthly_income, document_status)')
         .eq('listing_id', id)
         .order('created_at', { ascending: false })
 
@@ -200,6 +208,15 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
   const publicLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/apply/${listing.public_link_token}`
   const req = listing.owner_requirements ?? {}
+
+  // Classifica candidati verificati: punteggio più alto in cima, i non ancora
+  // valutati in coda (non sono "peggiori", semplicemente non hanno ancora uno score).
+  const sortedApplications = [...applications].sort((a, b) => {
+    if (a.safety_score == null && b.safety_score == null) return 0
+    if (a.safety_score == null) return 1
+    if (b.safety_score == null) return -1
+    return b.safety_score - a.safety_score
+  })
 
   return (
     <div>
@@ -384,17 +401,17 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
           </div>
         ) : (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 150px 120px 130px 90px 150px', padding: '10px 24px', gap: '16px', borderBottom: '1px solid var(--border)' }}>
-              {[t('colCandidate'), t('colContact'), t('colIncome'), t('colScore'), t('colReceived'), ''].map((h, i) => (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 150px 120px 90px 140px 110px 150px', padding: '10px 24px', gap: '16px', borderBottom: '1px solid var(--border)' }}>
+              {[t('colCandidate'), t('colContact'), t('colIncome'), t('colScore'), t('colDocument'), t('colReceived'), ''].map((h, i) => (
                 <span key={i} style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</span>
               ))}
             </div>
-            {applications.map((app, i) => (
+            {sortedApplications.map((app, i) => (
               <div
                 key={app.id}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '1fr 150px 120px 130px 90px 150px',
+                  gridTemplateColumns: '1fr 150px 120px 90px 140px 110px 150px',
                   padding: '16px 24px',
                   gap: '16px',
                   alignItems: 'center',
@@ -440,6 +457,14 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                     >
                       {scoringLoading[app.id] ? '...' : t('calculateScore')}
                     </button>
+                  )}
+                </div>
+                <div>
+                  {app.candidates && (
+                    <DocumentStatusBadge
+                      status={app.candidates.document_status}
+                      label={DOC_STATUS_LABELS[app.candidates.document_status] ?? DOC_STATUS_LABELS.verified}
+                    />
                   )}
                 </div>
                 <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>

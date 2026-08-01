@@ -44,6 +44,11 @@
       "3": "Signatura Digital",
       "4": "Incasòl",
       "5": "Arxivament"
+    },
+    "documentStatus": {
+      "verified": "✓ Verificat",
+      "suspicious": "⚠ Sospitós",
+      "fraudulent": "✗ Frau detectat"
     }
   },
   "dashboard": {
@@ -135,6 +140,7 @@
       "colContact": "Contacte",
       "colIncome": "Ingressos mensuals",
       "colScore": "Puntuació",
+      "colDocument": "Document",
       "colReceived": "Rebuda",
       "calculateScore": "Calcula la puntuació",
       "startProcedure": "Inicia el tràmit",
@@ -149,6 +155,7 @@
       "colEmail": "Email",
       "colContractIncome": "Contracte / Ingressos",
       "colScore": "Puntuació",
+      "colDocument": "Document",
       "colApplications": "Candidatures",
       "colRegistered": "Registrat",
       "viewProfile": "Veure el perfil",
