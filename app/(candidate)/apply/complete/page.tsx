@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 
 type PendingApplication = {
@@ -23,6 +24,7 @@ type PendingApplication = {
 
 export default function ApplyCompletePage() {
   const router = useRouter()
+  const t = useTranslations('apply.complete')
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -66,7 +68,7 @@ export default function ApplyCompletePage() {
         .eq('id', userId)
 
       if (candidateError) {
-        setErrorMessage('Errore nel salvataggio del profilo. Riprova tra qualche istante.')
+        setErrorMessage(t('errorProfile'))
         setStatus('error')
         return
       }
@@ -81,7 +83,7 @@ export default function ApplyCompletePage() {
 
       if (applicationError) {
         if (applicationError.code !== '23505') {
-          setErrorMessage('Errore nell\'invio della candidatura. Riprova tra qualche istante.')
+          setErrorMessage(t('errorApplication'))
           setStatus('error')
           return
         }
@@ -118,12 +120,12 @@ export default function ApplyCompletePage() {
   if (status === 'processing') {
     return (
       <div style={{
-        minHeight: '100vh', background: '#0D1117', display: 'flex',
+        minHeight: '100vh', background: 'var(--bg)', display: 'flex',
         alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif',
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '36px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: '#6B7585', fontSize: '14px' }}>Finalizzazione candidatura in corso...</p>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>{t('processing')}</p>
         </div>
       </div>
     )
@@ -132,25 +134,25 @@ export default function ApplyCompletePage() {
   if (status === 'error') {
     return (
       <div style={{
-        minHeight: '100vh', background: '#0D1117', display: 'flex',
+        minHeight: '100vh', background: 'var(--bg)', display: 'flex',
         alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif',
       }}>
         <div style={{ textAlign: 'center', maxWidth: '420px', padding: '24px' }}>
           <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚠️</div>
-          <h1 style={{ color: '#fff', fontSize: '20px', fontWeight: 600, marginBottom: '12px' }}>
-            Qualcosa è andato storto
+          <h1 style={{ color: 'var(--text)', fontSize: '20px', fontWeight: 600, marginBottom: '12px' }}>
+            {t('errorTitle')}
           </h1>
-          <p style={{ color: '#6B7585', fontSize: '14px', marginBottom: '24px', lineHeight: '1.6' }}>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', marginBottom: '24px', lineHeight: '1.6' }}>
             {errorMessage}
           </p>
           <button
             onClick={() => window.history.back()}
             style={{
-              padding: '10px 24px', background: '#1060E8', color: '#fff',
+              padding: '10px 24px', background: 'var(--primary)', color: 'var(--primary-foreground)',
               border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer',
             }}
           >
-            Torna indietro
+            {t('backButton')}
           </button>
         </div>
       </div>
@@ -159,23 +161,23 @@ export default function ApplyCompletePage() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#0D1117', display: 'flex',
+      minHeight: '100vh', background: 'var(--bg)', display: 'flex',
       alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif',
     }}>
       <div style={{ textAlign: 'center', maxWidth: '440px', padding: '24px' }}>
         <div style={{
           width: '64px', height: '64px', borderRadius: '50%',
-          background: 'rgba(27,163,90,0.15)', border: '2px solid #1BA35A',
+          background: 'color-mix(in srgb, var(--success) 15%, transparent)', border: '2px solid var(--success)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 24px', fontSize: '28px',
         }}>
           ✓
         </div>
-        <h1 style={{ color: '#fff', fontSize: '22px', fontWeight: 700, marginBottom: '12px' }}>
-          Candidatura inviata con successo!
+        <h1 style={{ color: 'var(--text)', fontSize: '22px', fontWeight: 700, marginBottom: '12px' }}>
+          {t('successTitle')}
         </h1>
-        <p style={{ color: '#6B7585', fontSize: '14px', lineHeight: '1.6' }}>
-          La tua candidatura è stata registrata. Sarai contattato dall'agenzia per i prossimi passi.
+        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', lineHeight: '1.6' }}>
+          {t('successDesc')}
         </p>
       </div>
     </div>

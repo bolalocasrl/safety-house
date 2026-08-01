@@ -274,5 +274,101 @@
     "logoutTitle": "Esci dall'account",
     "logoutDesc": "Verrai reindirizzato alla pagina di login",
     "logout": "Esci"
+  },
+  "auth": {
+    "brand": "Safety House",
+    "logoAlt": "Logo Safety House",
+    "login": {
+      "subtitle": "Accedi con la tua email",
+      "emailPlaceholder": "La tua email",
+      "sending": "Invio...",
+      "submit": "Invia Magic Link",
+      "sentMessage": "✓ Link inviato! Controlla la tua email."
+    },
+    "verify": {
+      "verifying": "Verifica in corso..."
+    }
+  },
+  "apply": {
+    "header": {
+      "applyingFor": "Candidatura per",
+      "rooms": "{count, plural, one {# stanza} other {# stanze}}"
+    },
+    "steps": {
+      "personal": "Dati personali",
+      "employment": "Situazione lavorativa",
+      "lifestyle": "Stile di vita",
+      "documents": "Documenti e Verifica"
+    },
+    "step1": {
+      "fullName": "Nome completo",
+      "fullNamePlaceholder": "Mario Rossi",
+      "email": "Email",
+      "emailPlaceholder": "mario@email.com",
+      "phone": "Telefono",
+      "phonePlaceholder": "+39 333 1234567",
+      "dniNie": "DNI / NIE",
+      "dniNiePlaceholder": "12345678A",
+      "nationality": "Nazionalità",
+      "nationalityPlaceholder": "Italiana"
+    },
+    "step2": {
+      "employmentType": "Tipo di impiego",
+      "selectPlaceholder": "Seleziona...",
+      "employed": "Dipendente",
+      "selfEmployed": "Autonomo / Libero professionista",
+      "student": "Studente",
+      "retired": "Pensionato",
+      "monthlyIncome": "Reddito mensile netto (€)",
+      "monthlyIncomePlaceholder": "2000",
+      "contractType": "Tipo di contratto",
+      "indefinido": "Tempo indeterminato",
+      "temporal": "Tempo determinato",
+      "autonomo": "Autonomo / Libero professionista"
+    },
+    "step3": {
+      "hasPets": "Ho animali domestici",
+      "smoker": "Sono fumatore",
+      "occupants": "Numero di occupanti (incluso te)",
+      "extraNotes": "Note aggiuntive",
+      "extraNotesPlaceholder": "Qualsiasi informazione aggiuntiva che vuoi condividere..."
+    },
+    "step4": {
+      "docContract": "Contratto di lavoro (PDF)",
+      "docPayslip": "Ultima nómina (PDF)",
+      "docIdentity": "Documento identità (DNI / NIE / Passaporto)",
+      "uploaded": "Caricato ✓",
+      "noFileSelected": "Nessun file selezionato",
+      "change": "Cambia",
+      "selectFile": "Seleziona file",
+      "csvLabel": "Codice CSV Vida Laboral",
+      "csvPlaceholder": "Es. HCQIN-D2BSU-XZIKJ-NWT5R-WFP2H-YUHQX",
+      "csvError": "Formato non valido. Usa il formato: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
+      "csvHint": "Facoltativo. Il codice si trova sul report Vida Laboral scaricato dalla Seguridad Social."
+    },
+    "nav": {
+      "back": "Indietro",
+      "continue": "Continua",
+      "submitting": "Invio in corso...",
+      "submit": "Invia candidatura"
+    },
+    "states": {
+      "loadingListing": "Caricamento annuncio...",
+      "invalidTitle": "Annuncio non disponibile",
+      "invalidDesc": "Il link che hai seguito non è valido o l'annuncio non è più attivo.",
+      "submittedTitle": "Candidatura inviata!",
+      "submittedDesc": "Controlla la tua email: ti abbiamo inviato un link per completare la candidatura per <b>{title}</b>. Clicca il link nell'email per confermare la tua identità e finalizzare l'invio.",
+      "otpError": "Errore nell'invio dell'email di verifica. Controlla l'indirizzo inserito."
+    },
+    "footerNote": "I tuoi dati sono al sicuro e verranno usati solo per la valutazione della candidatura.",
+    "complete": {
+      "processing": "Finalizzazione candidatura in corso...",
+      "errorTitle": "Qualcosa è andato storto",
+      "errorProfile": "Errore nel salvataggio del profilo. Riprova tra qualche istante.",
+      "errorApplication": "Errore nell'invio della candidatura. Riprova tra qualche istante.",
+      "backButton": "Torna indietro",
+      "successTitle": "Candidatura inviata con successo!",
+      "successDesc": "La tua candidatura è stata registrata. Sarai contattato dall'agenzia per i prossimi passi."
+    }
   }
 }

@@ -274,5 +274,101 @@
     "logoutTitle": "Log out",
     "logoutDesc": "You'll be redirected to the login page",
     "logout": "Log out"
+  },
+  "auth": {
+    "brand": "Safety House",
+    "logoAlt": "Safety House logo",
+    "login": {
+      "subtitle": "Sign in with your email",
+      "emailPlaceholder": "Your email",
+      "sending": "Sending...",
+      "submit": "Send Magic Link",
+      "sentMessage": "✓ Link sent! Check your email."
+    },
+    "verify": {
+      "verifying": "Verifying..."
+    }
+  },
+  "apply": {
+    "header": {
+      "applyingFor": "Application for",
+      "rooms": "{count, plural, one {# room} other {# rooms}}"
+    },
+    "steps": {
+      "personal": "Personal details",
+      "employment": "Employment situation",
+      "lifestyle": "Lifestyle",
+      "documents": "Documents & verification"
+    },
+    "step1": {
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Jane Doe",
+      "email": "Email",
+      "emailPlaceholder": "jane@email.com",
+      "phone": "Phone",
+      "phonePlaceholder": "+44 7700 900123",
+      "dniNie": "National ID / NIE",
+      "dniNiePlaceholder": "12345678A",
+      "nationality": "Nationality",
+      "nationalityPlaceholder": "British"
+    },
+    "step2": {
+      "employmentType": "Employment type",
+      "selectPlaceholder": "Select...",
+      "employed": "Employed",
+      "selfEmployed": "Self-employed / Freelancer",
+      "student": "Student",
+      "retired": "Retired",
+      "monthlyIncome": "Net monthly income (€)",
+      "monthlyIncomePlaceholder": "2000",
+      "contractType": "Contract type",
+      "indefinido": "Permanent",
+      "temporal": "Fixed-term",
+      "autonomo": "Self-employed / Freelancer"
+    },
+    "step3": {
+      "hasPets": "I have pets",
+      "smoker": "I'm a smoker",
+      "occupants": "Number of occupants (including you)",
+      "extraNotes": "Additional notes",
+      "extraNotesPlaceholder": "Any additional information you'd like to share..."
+    },
+    "step4": {
+      "docContract": "Employment contract (PDF)",
+      "docPayslip": "Latest payslip (PDF)",
+      "docIdentity": "ID document (National ID / NIE / Passport)",
+      "uploaded": "Uploaded ✓",
+      "noFileSelected": "No file selected",
+      "change": "Change",
+      "selectFile": "Select file",
+      "csvLabel": "Vida Laboral CSV code",
+      "csvPlaceholder": "E.g. HCQIN-D2BSU-XZIKJ-NWT5R-WFP2H-YUHQX",
+      "csvError": "Invalid format. Use the format: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
+      "csvHint": "Optional. The code is found on the Vida Laboral report downloaded from Social Security."
+    },
+    "nav": {
+      "back": "Back",
+      "continue": "Continue",
+      "submitting": "Submitting...",
+      "submit": "Submit application"
+    },
+    "states": {
+      "loadingListing": "Loading listing...",
+      "invalidTitle": "Listing not available",
+      "invalidDesc": "The link you followed is invalid or the listing is no longer active.",
+      "submittedTitle": "Application submitted!",
+      "submittedDesc": "Check your email: we've sent you a link to complete your application for <b>{title}</b>. Click the link in the email to confirm your identity and finalize the submission.",
+      "otpError": "Error sending the verification email. Check the address you entered."
+    },
+    "footerNote": "Your data is safe and will only be used to evaluate your application.",
+    "complete": {
+      "processing": "Finalizing application...",
+      "errorTitle": "Something went wrong",
+      "errorProfile": "Error saving your profile. Please try again shortly.",
+      "errorApplication": "Error submitting the application. Please try again shortly.",
+      "backButton": "Go back",
+      "successTitle": "Application submitted successfully!",
+      "successDesc": "Your application has been registered. The agency will contact you for the next steps."
+    }
   }
 }

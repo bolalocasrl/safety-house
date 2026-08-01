@@ -274,5 +274,101 @@
     "logoutTitle": "Cerrar sesión",
     "logoutDesc": "Serás redirigido a la página de inicio de sesión",
     "logout": "Salir"
+  },
+  "auth": {
+    "brand": "Safety House",
+    "logoAlt": "Logotipo de Safety House",
+    "login": {
+      "subtitle": "Accede con tu email",
+      "emailPlaceholder": "Tu email",
+      "sending": "Enviando...",
+      "submit": "Enviar Magic Link",
+      "sentMessage": "✓ ¡Enlace enviado! Revisa tu email."
+    },
+    "verify": {
+      "verifying": "Verificando..."
+    }
+  },
+  "apply": {
+    "header": {
+      "applyingFor": "Candidatura para",
+      "rooms": "{count, plural, one {# habitación} other {# habitaciones}}"
+    },
+    "steps": {
+      "personal": "Datos personales",
+      "employment": "Situación laboral",
+      "lifestyle": "Estilo de vida",
+      "documents": "Documentos y verificación"
+    },
+    "step1": {
+      "fullName": "Nombre completo",
+      "fullNamePlaceholder": "María García",
+      "email": "Email",
+      "emailPlaceholder": "maria@email.com",
+      "phone": "Teléfono",
+      "phonePlaceholder": "+34 600 123 456",
+      "dniNie": "DNI / NIE",
+      "dniNiePlaceholder": "12345678A",
+      "nationality": "Nacionalidad",
+      "nationalityPlaceholder": "Española"
+    },
+    "step2": {
+      "employmentType": "Tipo de empleo",
+      "selectPlaceholder": "Selecciona...",
+      "employed": "Asalariado",
+      "selfEmployed": "Autónomo / Profesional liberal",
+      "student": "Estudiante",
+      "retired": "Jubilado",
+      "monthlyIncome": "Ingresos mensuales netos (€)",
+      "monthlyIncomePlaceholder": "2000",
+      "contractType": "Tipo de contrato",
+      "indefinido": "Indefinido",
+      "temporal": "Temporal",
+      "autonomo": "Autónomo / Profesional liberal"
+    },
+    "step3": {
+      "hasPets": "Tengo mascotas",
+      "smoker": "Soy fumador",
+      "occupants": "Número de ocupantes (incluido tú)",
+      "extraNotes": "Notas adicionales",
+      "extraNotesPlaceholder": "Cualquier información adicional que quieras compartir..."
+    },
+    "step4": {
+      "docContract": "Contrato de trabajo (PDF)",
+      "docPayslip": "Última nómina (PDF)",
+      "docIdentity": "Documento de identidad (DNI / NIE / Pasaporte)",
+      "uploaded": "Subido ✓",
+      "noFileSelected": "Ningún archivo seleccionado",
+      "change": "Cambiar",
+      "selectFile": "Seleccionar archivo",
+      "csvLabel": "Código CSV Vida Laboral",
+      "csvPlaceholder": "Ej. HCQIN-D2BSU-XZIKJ-NWT5R-WFP2H-YUHQX",
+      "csvError": "Formato no válido. Usa el formato: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
+      "csvHint": "Opcional. El código se encuentra en el informe de Vida Laboral descargado de la Seguridad Social."
+    },
+    "nav": {
+      "back": "Atrás",
+      "continue": "Continuar",
+      "submitting": "Enviando...",
+      "submit": "Enviar candidatura"
+    },
+    "states": {
+      "loadingListing": "Cargando anuncio...",
+      "invalidTitle": "Anuncio no disponible",
+      "invalidDesc": "El enlace que has seguido no es válido o el anuncio ya no está activo.",
+      "submittedTitle": "¡Candidatura enviada!",
+      "submittedDesc": "Revisa tu email: te hemos enviado un enlace para completar la candidatura para <b>{title}</b>. Haz clic en el enlace del email para confirmar tu identidad y finalizar el envío.",
+      "otpError": "Error al enviar el email de verificación. Comprueba la dirección introducida."
+    },
+    "footerNote": "Tus datos están seguros y solo se usarán para evaluar la candidatura.",
+    "complete": {
+      "processing": "Finalizando candidatura...",
+      "errorTitle": "Algo ha ido mal",
+      "errorProfile": "Error al guardar el perfil. Vuelve a intentarlo en unos instantes.",
+      "errorApplication": "Error al enviar la candidatura. Vuelve a intentarlo en unos instantes.",
+      "backButton": "Volver atrás",
+      "successTitle": "¡Candidatura enviada con éxito!",
+      "successDesc": "Tu candidatura ha sido registrada. La agencia se pondrá en contacto contigo para los próximos pasos."
+    }
   }
 }

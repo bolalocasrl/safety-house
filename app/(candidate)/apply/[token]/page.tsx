@@ -1,7 +1,9 @@
 'use client'
 
 import { use, useEffect, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { formatCurrency } from '@/lib/format'
 
 type Listing = {
   id: string
@@ -46,10 +48,10 @@ type Uploads = {
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '11px 14px',
-  background: '#0D1117',
-  border: '1px solid #2E3540',
+  background: 'var(--bg)',
+  border: '1px solid var(--border)',
   borderRadius: '8px',
-  color: '#fff',
+  color: 'var(--text)',
   fontSize: '14px',
   boxSizing: 'border-box',
   outline: 'none',
@@ -57,7 +59,7 @@ const inputStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  color: '#9AA3B2',
+  color: 'var(--text-secondary)',
   fontSize: '12px',
   fontWeight: 500,
   marginBottom: '6px',
@@ -69,10 +71,6 @@ const labelStyle: React.CSSProperties = {
 // Esempio: HCQIN-D2BSU-XZIKJ-NWT5R-WFP2H-YUHQX
 const CSV_REGEX = /^[A-Z0-9]{5}(-[A-Z0-9]{5}){5}$/
 
-function formatRent(n: number) {
-  return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
-}
-
 function StepIndicator({ current, total }: { current: number; total: number }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '32px' }}>
@@ -80,15 +78,15 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
             width: '28px', height: '28px', borderRadius: '50%',
-            background: i < current ? '#1BA35A' : i === current ? '#1060E8' : '#2E3540',
-            color: i <= current ? '#fff' : '#6B7585',
+            background: i < current ? 'var(--success)' : i === current ? 'var(--primary)' : 'var(--border)',
+            color: i <= current ? 'var(--primary-foreground)' : 'var(--text-tertiary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '12px', fontWeight: 600, flexShrink: 0,
           }}>
             {i < current ? '✓' : i + 1}
           </div>
           {i < total - 1 && (
-            <div style={{ width: '24px', height: '2px', background: i < current ? '#1BA35A' : '#2E3540', borderRadius: '1px' }} />
+            <div style={{ width: '24px', height: '2px', background: i < current ? 'var(--success)' : 'var(--border)', borderRadius: '1px' }} />
           )}
         </div>
       ))}
@@ -99,10 +97,18 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 function MockUploadField({
   label,
   uploaded,
+  uploadedLabel,
+  emptyLabel,
+  changeLabel,
+  selectLabel,
   onUpload,
 }: {
   label: string
   uploaded: boolean
+  uploadedLabel: string
+  emptyLabel: string
+  changeLabel: string
+  selectLabel: string
   onUpload: () => void
 }) {
   return (
@@ -111,34 +117,34 @@ function MockUploadField({
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '11px 14px',
-        background: '#0D1117',
-        border: `1px solid ${uploaded ? '#1BA35A' : '#2E3540'}`,
+        background: 'var(--bg)',
+        border: `1px solid ${uploaded ? 'var(--success)' : 'var(--border)'}`,
         borderRadius: '8px',
         transition: 'border-color 0.2s',
       }}>
         {uploaded ? (
-          <span style={{ color: '#1BA35A', fontSize: '14px', fontWeight: 500 }}>
-            Caricato ✓
+          <span style={{ color: 'var(--success)', fontSize: '14px', fontWeight: 500 }}>
+            {uploadedLabel}
           </span>
         ) : (
-          <span style={{ color: '#6B7585', fontSize: '14px' }}>Nessun file selezionato</span>
+          <span style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>{emptyLabel}</span>
         )}
         <button
           type="button"
           onClick={onUpload}
           style={{
             padding: '6px 14px',
-            background: uploaded ? 'rgba(27,163,90,0.1)' : 'rgba(16,96,232,0.1)',
-            border: `1px solid ${uploaded ? 'rgba(27,163,90,0.3)' : 'rgba(16,96,232,0.3)'}`,
+            background: uploaded ? 'color-mix(in srgb, var(--success) 10%, transparent)' : 'color-mix(in srgb, var(--primary) 10%, transparent)',
+            border: `1px solid ${uploaded ? 'color-mix(in srgb, var(--success) 30%, transparent)' : 'color-mix(in srgb, var(--primary) 30%, transparent)'}`,
             borderRadius: '6px',
-            color: uploaded ? '#1BA35A' : '#1060E8',
+            color: uploaded ? 'var(--success)' : 'var(--primary)',
             fontSize: '12px',
             fontWeight: 500,
             cursor: 'pointer',
             flexShrink: 0,
           }}
         >
-          {uploaded ? 'Cambia' : 'Seleziona file'}
+          {uploaded ? changeLabel : selectLabel}
         </button>
       </div>
     </div>
@@ -148,6 +154,9 @@ function MockUploadField({
 export default function ApplyPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params)
   const supabase = createClient()
+  const t = useTranslations('apply')
+  const tc = useTranslations('common')
+  const locale = useLocale()
 
   const [listing, setListing] = useState<Listing | null>(null)
   const [loadingListing, setLoadingListing] = useState(true)
@@ -214,7 +223,7 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
     // Valida formato CSV Vida Laboral
     const csvCode = step4.vida_laboral_csv_code.trim().toUpperCase()
     if (csvCode && !CSV_REGEX.test(csvCode)) {
-      setCsvError('Formato non valido. Usa il formato: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX')
+      setCsvError(t('step4.csvError'))
       return
     }
 
@@ -245,7 +254,7 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
 
     if (otpError) {
       localStorage.removeItem('pending_application')
-      setSubmitError('Errore nell\'invio dell\'email di verifica. Controlla l\'indirizzo inserito.')
+      setSubmitError(t('states.otpError'))
       setSubmitting(false)
       return
     }
@@ -256,20 +265,20 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
 
   if (loadingListing) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0D1117', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#6B7585', fontSize: '14px' }}>Caricamento annuncio...</p>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>{t('states.loadingListing')}</p>
       </div>
     )
   }
 
   if (invalidToken || !listing) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0D1117', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', maxWidth: '400px', padding: '24px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-          <h1 style={{ color: '#fff', fontSize: '20px', marginBottom: '8px' }}>Annuncio non disponibile</h1>
-          <p style={{ color: '#6B7585', fontSize: '14px' }}>
-            Il link che hai seguito non è valido o l'annuncio non è più attivo.
+          <h1 style={{ color: 'var(--text)', fontSize: '20px', marginBottom: '8px' }}>{t('states.invalidTitle')}</h1>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>
+            {t('states.invalidDesc')}
           </p>
         </div>
       </div>
@@ -278,61 +287,62 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
 
   if (submitted) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0D1117', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', maxWidth: '440px', padding: '24px' }}>
           <div style={{
             width: '64px', height: '64px', borderRadius: '50%',
-            background: 'rgba(27,163,90,0.15)', border: '2px solid #1BA35A',
+            background: 'color-mix(in srgb, var(--success) 15%, transparent)', border: '2px solid var(--success)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 24px', fontSize: '28px',
           }}>
             ✓
           </div>
-          <h1 style={{ color: '#fff', fontSize: '22px', fontWeight: 700, marginBottom: '12px' }}>
-            Candidatura inviata!
+          <h1 style={{ color: 'var(--text)', fontSize: '22px', fontWeight: 700, marginBottom: '12px' }}>
+            {t('states.submittedTitle')}
           </h1>
-          <p style={{ color: '#6B7585', fontSize: '14px', lineHeight: '1.6' }}>
-            Controlla la tua email: ti abbiamo inviato un link per completare la candidatura per{' '}
-            <strong style={{ color: '#9AA3B2' }}>{listing.title}</strong>.
-            Clicca il link nell'email per confermare la tua identità e finalizzare l'invio.
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', lineHeight: '1.6' }}>
+            {t.rich('states.submittedDesc', {
+              title: listing.title,
+              b: (chunks) => <strong style={{ color: 'var(--text-secondary)' }}>{chunks}</strong>,
+            })}
           </p>
         </div>
       </div>
     )
   }
 
-  const STEP_TITLES = ['Dati personali', 'Situazione lavorativa', 'Stile di vita', 'Documenti e Verifica']
+  const STEP_TITLES = [t('steps.personal'), t('steps.employment'), t('steps.lifestyle'), t('steps.documents')]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0D1117', fontFamily: 'sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: 'sans-serif' }}>
       <div style={{ maxWidth: '560px', margin: '0 auto', padding: '48px 24px' }}>
 
         {/* Intestazione annuncio */}
         <div style={{
-          background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px',
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px',
           padding: '20px 24px', marginBottom: '32px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
         }}>
           <div>
-            <p style={{ color: '#6B7585', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-              Candidatura per
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+              {t('header.applyingFor')}
             </p>
-            <p style={{ color: '#fff', fontSize: '16px', fontWeight: 600 }}>{listing.title}</p>
-            <p style={{ color: '#6B7585', fontSize: '13px' }}>{listing.address}, {listing.city}</p>
+            <p style={{ color: 'var(--text)', fontSize: '16px', fontWeight: 600 }}>{listing.title}</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>{listing.address}, {listing.city}</p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <p style={{ color: '#1060E8', fontSize: '18px', fontWeight: 700 }}>
-              {formatRent(listing.monthly_rent)}
+            <p style={{ color: 'var(--primary)', fontSize: '18px', fontWeight: 700 }}>
+              {formatCurrency(listing.monthly_rent, locale)}
             </p>
-            <p style={{ color: '#6B7585', fontSize: '12px' }}>/mese · {listing.rooms} stanze</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>{tc('perMonth')} · {t('header.rooms', { count: listing.rooms })}</p>
           </div>
         </div>
 
         {/* Card form */}
-        <div style={{ background: '#1C2230', border: '1px solid #2E3540', borderRadius: '12px', padding: '32px' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '32px' }}>
           <StepIndicator current={step} total={4} />
 
-          <h2 style={{ color: '#fff', fontSize: '18px', fontWeight: 600, marginBottom: '24px' }}>
+          <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 600, marginBottom: '24px' }}>
             {STEP_TITLES[step]}
           </h2>
 
@@ -340,25 +350,25 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
           {step === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={labelStyle}>Nome completo</label>
-                <input style={inputStyle} type="text" placeholder="Mario Rossi" value={step1.full_name} onChange={e => set1('full_name', e.target.value)} required />
+                <label style={labelStyle}>{t('step1.fullName')}</label>
+                <input style={inputStyle} type="text" placeholder={t('step1.fullNamePlaceholder')} value={step1.full_name} onChange={e => set1('full_name', e.target.value)} required />
               </div>
               <div>
-                <label style={labelStyle}>Email</label>
-                <input style={inputStyle} type="email" placeholder="mario@email.com" value={step1.email} onChange={e => set1('email', e.target.value)} required />
+                <label style={labelStyle}>{t('step1.email')}</label>
+                <input style={inputStyle} type="email" placeholder={t('step1.emailPlaceholder')} value={step1.email} onChange={e => set1('email', e.target.value)} required />
               </div>
               <div>
-                <label style={labelStyle}>Telefono</label>
-                <input style={inputStyle} type="tel" placeholder="+39 333 1234567" value={step1.phone} onChange={e => set1('phone', e.target.value)} />
+                <label style={labelStyle}>{t('step1.phone')}</label>
+                <input style={inputStyle} type="tel" placeholder={t('step1.phonePlaceholder')} value={step1.phone} onChange={e => set1('phone', e.target.value)} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={labelStyle}>DNI / NIE</label>
-                  <input style={inputStyle} type="text" placeholder="12345678A" value={step1.dni_nie} onChange={e => set1('dni_nie', e.target.value)} />
+                  <label style={labelStyle}>{t('step1.dniNie')}</label>
+                  <input style={inputStyle} type="text" placeholder={t('step1.dniNiePlaceholder')} value={step1.dni_nie} onChange={e => set1('dni_nie', e.target.value)} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Nazionalità</label>
-                  <input style={inputStyle} type="text" placeholder="Italiana" value={step1.nationality} onChange={e => set1('nationality', e.target.value)} />
+                  <label style={labelStyle}>{t('step1.nationality')}</label>
+                  <input style={inputStyle} type="text" placeholder={t('step1.nationalityPlaceholder')} value={step1.nationality} onChange={e => set1('nationality', e.target.value)} />
                 </div>
               </div>
             </div>
@@ -368,34 +378,34 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={labelStyle}>Tipo di impiego</label>
+                <label style={labelStyle}>{t('step2.employmentType')}</label>
                 <select
                   style={{ ...inputStyle, cursor: 'pointer' }}
                   value={step2.employment_type}
                   onChange={e => set2('employment_type', e.target.value)}
                 >
-                  <option value="" disabled>Seleziona...</option>
-                  <option value="employed">Dipendente</option>
-                  <option value="self_employed">Autonomo / Libero professionista</option>
-                  <option value="student">Studente</option>
-                  <option value="retired">Pensionato</option>
+                  <option value="" disabled>{t('step2.selectPlaceholder')}</option>
+                  <option value="employed">{t('step2.employed')}</option>
+                  <option value="self_employed">{t('step2.selfEmployed')}</option>
+                  <option value="student">{t('step2.student')}</option>
+                  <option value="retired">{t('step2.retired')}</option>
                 </select>
               </div>
               <div>
-                <label style={labelStyle}>Reddito mensile netto (€)</label>
-                <input style={inputStyle} type="number" min="0" placeholder="2000" value={step2.monthly_income} onChange={e => set2('monthly_income', e.target.value)} />
+                <label style={labelStyle}>{t('step2.monthlyIncome')}</label>
+                <input style={inputStyle} type="number" min="0" placeholder={t('step2.monthlyIncomePlaceholder')} value={step2.monthly_income} onChange={e => set2('monthly_income', e.target.value)} />
               </div>
               <div>
-                <label style={labelStyle}>Tipo di contratto</label>
+                <label style={labelStyle}>{t('step2.contractType')}</label>
                 <select
                   style={{ ...inputStyle, cursor: 'pointer' }}
                   value={step2.contract_type}
                   onChange={e => set2('contract_type', e.target.value)}
                 >
-                  <option value="" disabled>Seleziona...</option>
-                  <option value="indefinido">Tempo indeterminato</option>
-                  <option value="temporal">Tempo determinato</option>
-                  <option value="autonomo">Autonomo / Libero professionista</option>
+                  <option value="" disabled>{t('step2.selectPlaceholder')}</option>
+                  <option value="indefinido">{t('step2.indefinido')}</option>
+                  <option value="temporal">{t('step2.temporal')}</option>
+                  <option value="autonomo">{t('step2.autonomo')}</option>
                 </select>
               </div>
             </div>
@@ -410,22 +420,22 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
                     type="checkbox"
                     checked={step3.has_pets}
                     onChange={e => set3('has_pets', e.target.checked)}
-                    style={{ width: '16px', height: '16px', accentColor: '#1060E8', cursor: 'pointer' }}
+                    style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
                   />
-                  <span style={{ color: '#9AA3B2', fontSize: '14px' }}>Ho animali domestici</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{t('step3.hasPets')}</span>
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
                     checked={step3.smoker}
                     onChange={e => set3('smoker', e.target.checked)}
-                    style={{ width: '16px', height: '16px', accentColor: '#1060E8', cursor: 'pointer' }}
+                    style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
                   />
-                  <span style={{ color: '#9AA3B2', fontSize: '14px' }}>Sono fumatore</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{t('step3.smoker')}</span>
                 </label>
               </div>
               <div>
-                <label style={labelStyle}>Numero di occupanti (incluso te)</label>
+                <label style={labelStyle}>{t('step3.occupants')}</label>
                 <input
                   style={inputStyle}
                   type="number"
@@ -435,10 +445,10 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
                 />
               </div>
               <div>
-                <label style={labelStyle}>Note aggiuntive</label>
+                <label style={labelStyle}>{t('step3.extraNotes')}</label>
                 <textarea
                   style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' } as React.CSSProperties}
-                  placeholder="Qualsiasi informazione aggiuntiva che vuoi condividere..."
+                  placeholder={t('step3.extraNotesPlaceholder')}
                   value={step3.extra_notes}
                   onChange={e => set3('extra_notes', e.target.value)}
                 />
@@ -450,41 +460,53 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
           {step === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <MockUploadField
-                label="Contratto di lavoro (PDF)"
+                label={t('step4.docContract')}
                 uploaded={uploads.contract}
+                uploadedLabel={t('step4.uploaded')}
+                emptyLabel={t('step4.noFileSelected')}
+                changeLabel={t('step4.change')}
+                selectLabel={t('step4.selectFile')}
                 onUpload={() => setUpload('contract')}
               />
               <MockUploadField
-                label="Ultima nómina (PDF)"
+                label={t('step4.docPayslip')}
                 uploaded={uploads.nomina}
+                uploadedLabel={t('step4.uploaded')}
+                emptyLabel={t('step4.noFileSelected')}
+                changeLabel={t('step4.change')}
+                selectLabel={t('step4.selectFile')}
                 onUpload={() => setUpload('nomina')}
               />
               <MockUploadField
-                label="Documento identità (DNI / NIE / Passaporto)"
+                label={t('step4.docIdentity')}
                 uploaded={uploads.identity}
+                uploadedLabel={t('step4.uploaded')}
+                emptyLabel={t('step4.noFileSelected')}
+                changeLabel={t('step4.change')}
+                selectLabel={t('step4.selectFile')}
                 onUpload={() => setUpload('identity')}
               />
 
               <div>
-                <label style={labelStyle}>Codice CSV Vida Laboral</label>
+                <label style={labelStyle}>{t('step4.csvLabel')}</label>
                 <input
                   style={{
                     ...inputStyle,
-                    borderColor: csvError ? 'rgba(220,38,38,0.6)' : '#2E3540',
+                    borderColor: csvError ? 'color-mix(in srgb, var(--danger) 60%, transparent)' : 'var(--border)',
                     fontFamily: 'monospace',
                     letterSpacing: '0.05em',
                   }}
                   type="text"
-                  placeholder="Es. HCQIN-D2BSU-XZIKJ-NWT5R-WFP2H-YUHQX"
+                  placeholder={t('step4.csvPlaceholder')}
                   value={step4.vida_laboral_csv_code}
                   onChange={e => set4('vida_laboral_csv_code', e.target.value.toUpperCase())}
                   maxLength={35}
                 />
                 {csvError && (
-                  <p style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>{csvError}</p>
+                  <p style={{ color: 'var(--danger)', fontSize: '12px', marginTop: '6px' }}>{csvError}</p>
                 )}
-                <p style={{ color: '#6B7585', fontSize: '11px', marginTop: '6px', lineHeight: '1.5' }}>
-                  Facoltativo. Il codice si trova sul report Vida Laboral scaricato dalla Seguridad Social.
+                <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', marginTop: '6px', lineHeight: '1.5' }}>
+                  {t('step4.csvHint')}
                 </p>
               </div>
             </div>
@@ -493,8 +515,8 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
           {submitError && (
             <div style={{
               marginTop: '20px',
-              background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)',
-              borderRadius: '8px', padding: '12px 16px', color: '#f87171', fontSize: '13px',
+              background: 'color-mix(in srgb, var(--danger) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)',
+              borderRadius: '8px', padding: '12px 16px', color: 'var(--danger)', fontSize: '13px',
             }}>
               {submitError}
             </div>
@@ -508,11 +530,11 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
                 onClick={() => setStep(s => s - 1)}
                 style={{
                   padding: '11px 20px', borderRadius: '8px', fontSize: '14px',
-                  background: 'transparent', color: '#6B7585',
-                  border: '1px solid #2E3540', cursor: 'pointer',
+                  background: 'transparent', color: 'var(--text-tertiary)',
+                  border: '1px solid var(--border)', cursor: 'pointer',
                 }}
               >
-                Indietro
+                {t('nav.back')}
               </button>
             )}
             <button
@@ -527,22 +549,22 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
               }}
               style={{
                 flex: 1, padding: '11px', borderRadius: '8px', fontSize: '14px', fontWeight: 500,
-                background: '#1060E8', color: '#fff', border: 'none',
+                background: 'var(--primary)', color: 'var(--primary-foreground)', border: 'none',
                 cursor: submitting ? 'not-allowed' : 'pointer',
                 opacity: submitting ? 0.7 : 1,
               }}
             >
               {step < 3
-                ? 'Continua'
+                ? t('nav.continue')
                 : submitting
-                  ? 'Invio in corso...'
-                  : 'Invia candidatura'}
+                  ? t('nav.submitting')
+                  : t('nav.submit')}
             </button>
           </div>
         </div>
 
-        <p style={{ color: '#6B7585', fontSize: '12px', textAlign: 'center', marginTop: '20px' }}>
-          I tuoi dati sono al sicuro e verranno usati solo per la valutazione della candidatura.
+        <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', textAlign: 'center', marginTop: '20px' }}>
+          {t('footerNote')}
         </p>
       </div>
     </div>

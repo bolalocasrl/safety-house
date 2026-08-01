@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  const t = useTranslations('auth')
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -26,43 +29,46 @@ export default function LoginPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: '#0D1117',
+      background: 'var(--bg)',
       fontFamily: 'sans-serif'
     }}>
       <div style={{
-        background: '#1C2230',
+        background: 'var(--surface)',
         padding: '48px',
         borderRadius: '16px',
         width: '100%',
         maxWidth: '420px',
-        border: '1px solid #2E3540'
+        border: '1px solid var(--border)'
       }}>
-        <h1 style={{ color: '#fff', fontSize: '24px', marginBottom: '8px' }}>
-          Safety House
-        </h1>
-        <p style={{ color: '#6B7585', marginBottom: '32px' }}>
-          Accedi con la tua email
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+          <Image src="/logo.png" alt={t('logoAlt')} width={32} height={36} priority />
+          <h1 style={{ color: 'var(--text)', fontSize: '24px' }}>
+            {t('brand')}
+          </h1>
+        </div>
+        <p style={{ color: 'var(--text-tertiary)', marginBottom: '32px' }}>
+          {t('login.subtitle')}
         </p>
 
         {sent ? (
-          <div style={{ color: '#1BA35A', textAlign: 'center', padding: '24px 0' }}>
-            ✓ Link inviato! Controlla la tua email.
+          <div style={{ color: 'var(--success)', textAlign: 'center', padding: '24px 0' }}>
+            {t('login.sentMessage')}
           </div>
         ) : (
           <form onSubmit={handleLogin}>
             <input
               type="email"
-              placeholder="La tua email"
+              placeholder={t('login.emailPlaceholder')}
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
               style={{
                 width: '100%',
                 padding: '12px 16px',
-                background: '#0D1117',
-                border: '1px solid #2E3540',
+                background: 'var(--bg)',
+                border: '1px solid var(--border)',
                 borderRadius: '8px',
-                color: '#fff',
+                color: 'var(--text)',
                 fontSize: '15px',
                 marginBottom: '16px',
                 boxSizing: 'border-box'
@@ -74,8 +80,8 @@ export default function LoginPage() {
               style={{
                 width: '100%',
                 padding: '12px',
-                background: '#1060E8',
-                color: '#fff',
+                background: 'var(--primary)',
+                color: 'var(--primary-foreground)',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '15px',
@@ -83,7 +89,7 @@ export default function LoginPage() {
                 opacity: loading ? 0.7 : 1
               }}
             >
-              {loading ? 'Invio...' : 'Invia Magic Link'}
+              {loading ? t('login.sending') : t('login.submit')}
             </button>
           </form>
         )}

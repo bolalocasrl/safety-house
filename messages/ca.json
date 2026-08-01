@@ -274,5 +274,101 @@
     "logoutTitle": "Tanca la sessió",
     "logoutDesc": "Seràs redirigit a la pàgina d'inici de sessió",
     "logout": "Surt"
+  },
+  "auth": {
+    "brand": "Safety House",
+    "logoAlt": "Logotip de Safety House",
+    "login": {
+      "subtitle": "Accedeix amb el teu email",
+      "emailPlaceholder": "El teu email",
+      "sending": "Enviant...",
+      "submit": "Envia el Magic Link",
+      "sentMessage": "✓ Enllaç enviat! Revisa el teu email."
+    },
+    "verify": {
+      "verifying": "Verificant..."
+    }
+  },
+  "apply": {
+    "header": {
+      "applyingFor": "Candidatura per a",
+      "rooms": "{count, plural, one {# habitació} other {# habitacions}}"
+    },
+    "steps": {
+      "personal": "Dades personals",
+      "employment": "Situació laboral",
+      "lifestyle": "Estil de vida",
+      "documents": "Documents i verificació"
+    },
+    "step1": {
+      "fullName": "Nom complet",
+      "fullNamePlaceholder": "Maria Garcia",
+      "email": "Email",
+      "emailPlaceholder": "maria@email.com",
+      "phone": "Telèfon",
+      "phonePlaceholder": "+34 600 123 456",
+      "dniNie": "DNI / NIE",
+      "dniNiePlaceholder": "12345678A",
+      "nationality": "Nacionalitat",
+      "nationalityPlaceholder": "Espanyola"
+    },
+    "step2": {
+      "employmentType": "Tipus de feina",
+      "selectPlaceholder": "Selecciona...",
+      "employed": "Assalariat",
+      "selfEmployed": "Autònom / Professional liberal",
+      "student": "Estudiant",
+      "retired": "Jubilat",
+      "monthlyIncome": "Ingressos mensuals nets (€)",
+      "monthlyIncomePlaceholder": "2000",
+      "contractType": "Tipus de contracte",
+      "indefinido": "Indefinit",
+      "temporal": "Temporal",
+      "autonomo": "Autònom / Professional liberal"
+    },
+    "step3": {
+      "hasPets": "Tinc mascotes",
+      "smoker": "Sóc fumador",
+      "occupants": "Nombre d'ocupants (inclòs tu)",
+      "extraNotes": "Notes addicionals",
+      "extraNotesPlaceholder": "Qualsevol informació addicional que vulguis compartir..."
+    },
+    "step4": {
+      "docContract": "Contracte de treball (PDF)",
+      "docPayslip": "Última nòmina (PDF)",
+      "docIdentity": "Document d'identitat (DNI / NIE / Passaport)",
+      "uploaded": "Pujat ✓",
+      "noFileSelected": "Cap fitxer seleccionat",
+      "change": "Canvia",
+      "selectFile": "Selecciona fitxer",
+      "csvLabel": "Codi CSV Vida Laboral",
+      "csvPlaceholder": "Ex. HCQIN-D2BSU-XZIKJ-NWT5R-WFP2H-YUHQX",
+      "csvError": "Format no vàlid. Fes servir el format: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
+      "csvHint": "Opcional. El codi es troba a l'informe de Vida Laboral descarregat de la Seguretat Social."
+    },
+    "nav": {
+      "back": "Enrere",
+      "continue": "Continua",
+      "submitting": "Enviant...",
+      "submit": "Envia la candidatura"
+    },
+    "states": {
+      "loadingListing": "Carregant l'anunci...",
+      "invalidTitle": "Anunci no disponible",
+      "invalidDesc": "L'enllaç que has seguit no és vàlid o l'anunci ja no està actiu.",
+      "submittedTitle": "Candidatura enviada!",
+      "submittedDesc": "Revisa el teu email: t'hem enviat un enllaç per completar la candidatura per a <b>{title}</b>. Fes clic a l'enllaç de l'email per confirmar la teva identitat i finalitzar l'enviament.",
+      "otpError": "Error en enviar l'email de verificació. Comprova l'adreça introduïda."
+    },
+    "footerNote": "Les teves dades estan segures i només s'utilitzaran per avaluar la candidatura.",
+    "complete": {
+      "processing": "Finalitzant la candidatura...",
+      "errorTitle": "Alguna cosa ha fallat",
+      "errorProfile": "Error en desar el perfil. Torna-ho a provar d'aquí uns instants.",
+      "errorApplication": "Error en enviar la candidatura. Torna-ho a provar d'aquí uns instants.",
+      "backButton": "Torna enrere",
+      "successTitle": "Candidatura enviada amb èxit!",
+      "successDesc": "La teva candidatura ha estat registrada. L'agència es posarà en contacte amb tu per als propers passos."
+    }
   }
 }
