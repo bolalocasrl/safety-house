@@ -63,7 +63,7 @@ const db = createAdminClient()
 // Dati della scena demo
 // ---------------------------------------------------------------------------
 
-const AGENCY_LOGIN_EMAIL = 'safetyhouse26@gmail.com'
+const AGENCY_LOGIN_EMAIL = 'matteo.leads99@gmail.com'
 
 type OwnerRequirements = {
   no_pets?: boolean
