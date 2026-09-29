@@ -64,3 +64,70 @@ body {
 h1, h2, h3 {
   font-family: var(--font-sora);
 }
+
+/* ---------------------------------------------------------------------------
+   Reazione al passaggio del mouse e al clic.
+
+   Gli stili delle pagine sono scritti inline dentro i componenti, e una regola
+   di questo foglio non può sovrascriverli: l'inline vince sempre. Questi
+   effetti agiscono quindi solo su proprietà che inline non vengono mai
+   impostate — luminosità, spostamento, cursore — così valgono ovunque senza
+   dover toccare le centinaia di stili già scritti.
+--------------------------------------------------------------------------- */
+
+button, a, select, [role="button"] {
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+button, select, [role="button"] {
+  cursor: pointer;
+}
+
+/* Tema chiaro: si scurisce appena. Sul tema scuro schiarire è più leggibile. */
+button:hover, a:hover, select:hover, [role="button"]:hover {
+  filter: brightness(0.96);
+}
+
+[data-theme="dark"] button:hover,
+[data-theme="dark"] a:hover,
+[data-theme="dark"] select:hover,
+[data-theme="dark"] [role="button"]:hover {
+  filter: brightness(1.18);
+}
+
+button:active, a:active, [role="button"]:active {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  filter: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* Contorno visibile per chi naviga da tastiera. */
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Scheletri di caricamento: blocchi grigi della forma del contenuto in
+   arrivo, al posto di una pagina vuota.
+--------------------------------------------------------------------------- */
+
+@keyframes sh-respiro {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+.sh-scheletro {
+  background: var(--border);
+  border-radius: 8px;
+  animation: sh-respiro 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-scheletro { animation: none; opacity: 0.7; }
+  button, a, select, [role="button"] { transition: none; }
+}

@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate } from '@/lib/format'
+import { TestataPagina, ElencoRighe } from '@/components/scheletro'
 
 type Procedure = {
   id: string
@@ -150,8 +151,9 @@ export default function ProcedureDetailPage({ params }: { params: Promise<{ id: 
 
   if (loading) {
     return (
-      <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', paddingTop: '48px', textAlign: 'center' }}>
-        {tc('loading')}
+      <div>
+        <TestataPagina />
+        <ElencoRighe righe={5} />
       </div>
     )
   }

@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/format'
 import { DocumentStatusBadge, type DocumentStatus } from '@/components/document-status-badge'
+import { TestataPagina, ElencoRighe } from '@/components/scheletro'
 
 type OwnerRequirements = {
   no_pets?: boolean
@@ -191,8 +192,9 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
   if (loadingPage) {
     return (
-      <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', paddingTop: '48px', textAlign: 'center' }}>
-        {tc('loading')}
+      <div>
+        <TestataPagina />
+        <ElencoRighe righe={4} />
       </div>
     )
   }
