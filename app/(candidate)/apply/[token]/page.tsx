@@ -249,7 +249,7 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
 
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: step1.email,
-      options: { shouldCreateUser: true, emailRedirectTo: 'https://safety-house-nine.vercel.app/verify' },
+      options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/verify` },
     })
 
     if (otpError) {
