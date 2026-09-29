@@ -224,6 +224,21 @@ safety_house/
 
 ## 🔜 DA FARE — PROSSIMA SESSIONE
 
+**⚠️ DA RISOLVERE PRIMA DEL LANCIO — il link magico non funziona da un altro dispositivo**
+
+Il login usa il flusso PKCE: quando si richiede il link, il browser conserva
+una chiave di verifica, e senza quella l'accesso non si completa. Conseguenza:
+il link **funziona solo nella stessa finestra del browser da cui è partito**.
+Un candidato che compila la candidatura dal computer e apre la mail dal
+telefono — comportamento normalissimo — non riesce a entrare, e non capisce
+perché. A candidature reali è una perdita secca di utenti.
+
+Soluzione: sostituire il link con un **codice numerico a 6 cifre** da digitare
+(`verifyOtp` con `type: 'email'`), che funziona da qualsiasi dispositivo. In
+alternativa si può tenere il link e aggiungere il codice come ripiego.
+Nel frattempo `/verify` non resta più bloccata: dopo 10 secondi senza sessione
+riporta al login.
+
 **Difetti trovati durante la ricostruzione (piccoli, non ancora sistemati):**
 
 - `app/(candidate)/apply/[token]/page.tsx` riga ~252: l'indirizzo di ritorno del
