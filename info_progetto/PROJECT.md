@@ -1,6 +1,6 @@
 # 🏠 SAFETY HOUSE — PROJECT STATUS
 
-> **Ultimo aggiornamento:** 03/05/2026 (sessione 2)  
+> **Ultimo aggiornamento:** 29/09/2026 (ricostruzione database)  
 > **Istruzioni per Claude VS Code:** Leggi questo file all'inizio di ogni sessione prima di fare qualsiasi cosa. Aggiornalo dopo ogni modifica importante.
 
 ---
@@ -72,7 +72,15 @@ Safety House è una piattaforma SaaS CRM verticale per la gestione del ciclo di 
 - `applications` — candidature (listing ↔ candidate), con `safety_score`
 - `procedures` — workflow post-selezione 5 step
 
-**Colonne aggiunte manualmente (SQL da eseguire se non già fatto):**
+**⚠️ Lo schema vive nel repo, non nel pannello.** Da settembre 2026 le tabelle,
+le policy RLS e il trigger sono ricreabili da zero con le migrazioni in
+`supabase/migrations/`, eseguite in ordine numerico. Prima esistevano solo
+dentro il pannello Supabase: quando il progetto è stato sospeso non c'era modo
+di ricostruirle, e sono andate ricavate leggendo le query del codice. Ogni
+modifica futura allo schema va scritta come nuova migrazione numerata, mai
+solo cliccata nel pannello.
+
+**Colonne aggiunte manualmente (storico — oggi incluse in `001_schema_iniziale.sql`):**
 ```sql
 ALTER TABLE candidates  ADD COLUMN IF NOT EXISTS safety_score          numeric(4,2);
 ALTER TABLE candidates  ADD COLUMN IF NOT EXISTS vida_laboral_csv_code text;
@@ -141,6 +149,12 @@ safety_house/
 │   │   └── admin.ts                        ✅ Admin client (service role, bypassa RLS)
 │   └── scoring/
 │       └── algorithm.ts                    ✅ calculateScore() — solvibilità 40% + matching 20% + antifrode 40%
+├── scripts/
+│   ├── setup-agenzia.ts                    ✅ Utente di login + agenzia + ruolo direttore
+│   └── seed-demo.ts                        ✅ 3 annunci + 8 candidati con score reali
+├── supabase/migrations/
+│   ├── 001_schema_iniziale.sql             ✅ 7 tabelle + RLS + trigger nuovi iscritti
+│   └── 002_document_status.sql             ✅ Esito verifica documentale
 ├── proxy.ts                                ✅ Auth guard middleware
 └── .env.local                              ✅ (NON committare)
 ```
@@ -210,7 +224,19 @@ safety_house/
 
 ## 🔜 DA FARE — PROSSIMA SESSIONE
 
-> Tutti i task delle sessioni precedenti sono completati. Proposta Sprint 5:
+**Difetti trovati durante la ricostruzione (piccoli, non ancora sistemati):**
+
+- `app/(candidate)/apply/[token]/page.tsx` riga ~252: l'indirizzo di ritorno del
+  link magico è scritto fisso (`https://safety-house-nine.vercel.app/verify`),
+  mentre `login/page.tsx` lo calcola con `window.location.origin`. In locale la
+  candidatura rimanda quindi al sito online. Va allineato al comportamento del
+  login.
+- `NEXT_PUBLIC_APP_URL` non era impostata su Vercel, quindi il logout in
+  produzione era rotto (`new URL('/login', undefined)`). Risolto il 29/09/2026
+  aggiungendo la variabile, ma vale la pena controllare che ogni variabile usata
+  con `!` nel codice esista davvero in produzione.
+
+> Il resto dei task delle sessioni precedenti è completato. Proposta Sprint 5:
 
 1. **Multi-tenant filiali** — switch filiale nella sidebar, `branch_id` su listings/procedures
 2. **Stripe Billing** — checkout Starter/Pro/Enterprise, webhook per aggiornare `agencies.plan`
@@ -225,22 +251,36 @@ safety_house/
 
 **Variabili ambiente (`.env.local`):**
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://zasjzybfimymhrxxyboc.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://xfvnwpuiakilblusjwdb.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[publishable key]
 SUPABASE_SERVICE_ROLE_KEY=[secret key]
+SUPABASE_DB_URL=[stringa di connessione Postgres, solo per le migrazioni]
 RESEND_API_KEY=[da configurare]
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+Le stesse tre chiavi Supabase sono impostate su Vercel (production + preview),
+insieme a `NEXT_PUBLIC_APP_URL=https://safety-house-nine.vercel.app`.
 
 **URL:**
 - Local: `http://localhost:3000`
 - Production: `https://safety-house-nine.vercel.app`
-- Supabase: `https://zasjzybfimymhrxxyboc.supabase.co`
+- Supabase: `https://xfvnwpuiakilblusjwdb.supabase.co` (progetto `safety-house-crm`, Frankfurt)
 - GitHub: `https://github.com/bolalocasrl/safety-house`
 
+**⚠️ Il progetto Supabase sta su un account separato:** `matteo.leads99@gmail.com`,
+organizzazione "Safety House". Non è lo stesso account di LeadCRM e LifeOS
+(`bolalocasrl`), che sul piano gratuito è già al limite di 2 progetti attivi.
+Per questo il connettore Supabase di Claude **non** vede questo database: le
+migrazioni si eseguono dal terminale usando `SUPABASE_DB_URL`.
+
 **Account di test:**
-- Agency Director: `safetyhouse26@gmail.com`
+- Agency Director: `matteo.leads99@gmail.com` (creato da `scripts/setup-agenzia.ts`)
 - Candidate: `bolalocasrl@gmail.com`
+
+**Indirizzi di ritorno del link magico** (Supabase → Authentication → URL
+Configuration): Site URL `https://safety-house-nine.vercel.app`, Redirect URLs
+`https://safety-house-nine.vercel.app/**` e `http://localhost:3000/**`. Senza
+questi il login via email non riporta all'app.
 
 ---
 
@@ -255,7 +295,16 @@ git add . && git commit -m "descrizione" && git push
 
 # Ferma il server
 Ctrl+C
+
+# Ricreare il database da zero (nuovo progetto Supabase)
+# 1. esegui in ordine i file di supabase/migrations/ sul nuovo database
+# 2. poi, nell'ordine:
+node scripts/setup-agenzia.ts   # utente di login + agenzia + ruolo direttore
+node scripts/seed-demo.ts       # 3 annunci + 8 candidati con score reali
 ```
+Entrambi gli script sono idempotenti: rilanciarli aggiorna invece di duplicare.
+`setup-agenzia.ts` va sempre prima, perché il seed dà per scontato che
+l'agenzia esista.
 
 ---
 
@@ -271,6 +320,19 @@ Ctrl+C
 8. **Trigger** `handle_new_user()` crea automaticamente un record in `candidates` — gli agenti vanno inseriti manualmente in `users`
 9. **contract_type** valori validi: `indefinido` / `temporal` / `autonomo`
 10. **employment_type** valori validi: `employed` / `self_employed` / `student` / `retired`
+11. **Il piano gratuito Supabase sospende i progetti inattivi.** È già successo
+    una volta (maggio → settembre 2026): i dati restano recuperabili per circa
+    un anno, ma per riaccendere serve uno slot libero tra i 2 progetti attivi
+    consentiti per account. Se il progetto diventa operativo, il piano Pro
+    (~25$/mese) elimina sia il limite sia le sospensioni.
+12. **La policy RLS su `users` non deve mai interrogare `users`.** Passa dalla
+    funzione `agenzia_utente_corrente()` (SECURITY DEFINER), che legge la
+    tabella scavalcando le sue stesse policy ed evita la ricorsione infinita.
+    Stesso discorso per `candidato_visibile_ad_agenzia()`.
+13. **La lettura anonima degli annunci attivi è voluta:** serve alla pagina
+    pubblica `/apply/[token]`, che mostra l'annuncio a chi non ha ancora un
+    account. È però più larga del necessario (espone tutti gli annunci attivi,
+    non solo quello del token) — da restringere quando il prodotto va live.
 
 ---
 
