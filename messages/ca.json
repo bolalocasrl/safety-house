@@ -290,7 +290,9 @@
       "emailPlaceholder": "El teu email",
       "sending": "Enviant...",
       "submit": "Envia el Magic Link",
-      "sentMessage": "✓ Enllaç enviat! Revisa el teu email."
+      "sentMessage": "✓ Enllaç enviat! Revisa el teu email.",
+      "errorRateLimit": "Massa enviaments seguits: el servei de correu ha arribat al límit. Torna-ho a provar d'aquí a uns minuts.",
+      "errorGeneric": "No hem pogut enviar el correu. Comprova l'adreça i torna-ho a provar."
     },
     "verify": {
       "verifying": "Verificant..."
@@ -365,7 +367,8 @@
       "invalidDesc": "L'enllaç que has seguit no és vàlid o l'anunci ja no està actiu.",
       "submittedTitle": "Candidatura enviada!",
       "submittedDesc": "Revisa el teu email: t'hem enviat un enllaç per completar la candidatura per a <b>{title}</b>. Fes clic a l'enllaç de l'email per confirmar la teva identitat i finalitzar l'enviament.",
-      "otpError": "Error en enviar l'email de verificació. Comprova l'adreça introduïda."
+      "otpError": "No hem pogut enviar el correu. Comprova l'adreça i torna-ho a provar.",
+      "otpErrorRateLimit": "Massa enviaments seguits: el servei de correu ha arribat al límit. Torna-ho a provar d'aquí a uns minuts."
     },
     "footerNote": "Les teves dades estan segures i només s'utilitzaran per avaluar la candidatura.",
     "complete": {

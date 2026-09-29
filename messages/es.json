@@ -290,7 +290,9 @@
       "emailPlaceholder": "Tu email",
       "sending": "Enviando...",
       "submit": "Enviar Magic Link",
-      "sentMessage": "✓ ¡Enlace enviado! Revisa tu email."
+      "sentMessage": "✓ ¡Enlace enviado! Revisa tu email.",
+      "errorRateLimit": "Demasiados envíos seguidos: el servicio de email ha alcanzado su límite. Inténtalo de nuevo en unos minutos.",
+      "errorGeneric": "No hemos podido enviar el email. Comprueba la dirección e inténtalo de nuevo."
     },
     "verify": {
       "verifying": "Verificando..."
@@ -365,7 +367,8 @@
       "invalidDesc": "El enlace que has seguido no es válido o el anuncio ya no está activo.",
       "submittedTitle": "¡Candidatura enviada!",
       "submittedDesc": "Revisa tu email: te hemos enviado un enlace para completar la candidatura para <b>{title}</b>. Haz clic en el enlace del email para confirmar tu identidad y finalizar el envío.",
-      "otpError": "Error al enviar el email de verificación. Comprueba la dirección introducida."
+      "otpError": "No hemos podido enviar el email. Comprueba la dirección e inténtalo de nuevo.",
+      "otpErrorRateLimit": "Demasiados envíos seguidos: el servicio de email ha alcanzado su límite. Inténtalo de nuevo en unos minutos."
     },
     "footerNote": "Tus datos están seguros y solo se usarán para evaluar la candidatura.",
     "complete": {

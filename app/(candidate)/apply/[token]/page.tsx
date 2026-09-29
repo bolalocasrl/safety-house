@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/format'
+import { eLimiteInvioEmail } from '@/lib/errori-auth'
 
 type Listing = {
   id: string
@@ -254,7 +255,9 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
 
     if (otpError) {
       localStorage.removeItem('pending_application')
-      setSubmitError(t('states.otpError'))
+      setSubmitError(
+        eLimiteInvioEmail(otpError) ? t('states.otpErrorRateLimit') : t('states.otpError')
+      )
       setSubmitting(false)
       return
     }

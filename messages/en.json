@@ -290,7 +290,9 @@
       "emailPlaceholder": "Your email",
       "sending": "Sending...",
       "submit": "Send Magic Link",
-      "sentMessage": "✓ Link sent! Check your email."
+      "sentMessage": "✓ Link sent! Check your email.",
+      "errorRateLimit": "Too many requests in a row: the email service has hit its limit. Please try again in a few minutes.",
+      "errorGeneric": "We couldn't send the email. Check the address and try again."
     },
     "verify": {
       "verifying": "Verifying..."
@@ -365,7 +367,8 @@
       "invalidDesc": "The link you followed is invalid or the listing is no longer active.",
       "submittedTitle": "Application submitted!",
       "submittedDesc": "Check your email: we've sent you a link to complete your application for <b>{title}</b>. Click the link in the email to confirm your identity and finalize the submission.",
-      "otpError": "Error sending the verification email. Check the address you entered."
+      "otpError": "We couldn't send the email. Check the address and try again.",
+      "otpErrorRateLimit": "Too many requests in a row: the email service has hit its limit. Please try again in a few minutes."
     },
     "footerNote": "Your data is safe and will only be used to evaluate your application.",
     "complete": {

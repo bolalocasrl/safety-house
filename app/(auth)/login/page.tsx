@@ -4,21 +4,35 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { eLimiteInvioEmail } from '@/lib/errori-auth'
 
 export default function LoginPage() {
   const t = useTranslations('auth')
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [errore, setErrore] = useState<string | null>(null)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    setErrore(null)
     const supabase = createClient()
-    await supabase.auth.signInWithOtp({
+
+    // Prima l'esito non veniva guardato affatto: l'app annunciava "link
+    // inviato" anche quando l'invio era fallito, e l'utente restava ad
+    // aspettare una mail che non sarebbe mai arrivata.
+    const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${window.location.origin}/verify` }
     })
+
+    if (error) {
+      setErrore(eLimiteInvioEmail(error) ? t('login.errorRateLimit') : t('login.errorGeneric'))
+      setLoading(false)
+      return
+    }
+
     setSent(true)
     setLoading(false)
   }
@@ -56,6 +70,23 @@ export default function LoginPage() {
           </div>
         ) : (
           <form onSubmit={handleLogin}>
+            {errore && (
+              <div
+                role="alert"
+                style={{
+                  background: 'color-mix(in srgb, var(--danger) 10%, transparent)',
+                  border: '1px solid color-mix(in srgb, var(--danger) 35%, transparent)',
+                  color: 'var(--danger)',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  fontSize: '13px',
+                  lineHeight: 1.5,
+                  marginBottom: '16px',
+                }}
+              >
+                {errore}
+              </div>
+            )}
             <input
               type="email"
               placeholder={t('login.emailPlaceholder')}
