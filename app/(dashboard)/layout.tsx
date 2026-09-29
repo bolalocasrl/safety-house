@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
+import MenuLaterale, { type VoceMenu } from '@/components/menu-laterale'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -12,33 +13,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const t = await getTranslations('nav')
 
-  const navItems = [
-    { label: t('dashboard'), href: '/dashboard' },
-    { label: t('listings'), href: '/listings' },
-    { label: t('candidates'), href: '/candidates' },
-    { label: t('procedures'), href: '/procedures' },
-    { label: t('settings'), href: '/settings' },
+  const voci: VoceMenu[] = [
+    { chiave: 'dashboard',  etichetta: t('dashboard'),  href: '/dashboard' },
+    { chiave: 'listings',   etichetta: t('listings'),   href: '/listings' },
+    { chiave: 'candidates', etichetta: t('candidates'), href: '/candidates' },
+    { chiave: 'procedures', etichetta: t('procedures'), href: '/procedures' },
+    { chiave: 'settings',   etichetta: t('settings'),   href: '/settings' },
   ]
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      <aside style={{ width: '240px', background: 'var(--surface)', borderRight: '1px solid var(--border)', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ color: 'var(--text)', fontSize: '18px', fontWeight: '700', padding: '8px 12px', marginBottom: '16px' }}>
-          {t('brand')}
+    <div className="bg-bg flex min-h-screen flex-col md:flex-row">
+      <MenuLaterale voci={voci} marchio={t('brand')} etichettaEsci={t('logout')} />
+      <main className="min-w-0 flex-1 px-5 py-6 md:px-8 md:py-8">
+        <div className="mx-auto w-full max-w-5xl">
+          {children}
         </div>
-        {navItems.map(item => (
-          <a key={item.href} href={item.href} style={{ color: 'var(--text-secondary)', textDecoration: 'none', padding: '10px 12px', borderRadius: '8px', fontSize: '14px', display: 'block' }}>
-            {item.label}
-          </a>
-        ))}
-        <div style={{ marginTop: 'auto' }}>
-          <a href="/api/auth/logout" style={{ color: 'var(--text-tertiary)', textDecoration: 'none', padding: '10px 12px', fontSize: '14px', display: 'block' }}>
-            {t('logout')}
-          </a>
-        </div>
-      </aside>
-      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
-        {children}
       </main>
     </div>
   )
