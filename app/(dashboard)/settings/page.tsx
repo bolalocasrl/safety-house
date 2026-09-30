@@ -5,94 +5,12 @@ import { useRouter } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/theme-provider'
+import { IconaEsci } from '@/components/icone'
 
 type AppLocale = 'es' | 'ca' | 'it' | 'en'
 
 function setLocaleCookie(next: AppLocale) {
   document.cookie = `sh_lang=${next}; path=/; max-age=31536000`
-}
-
-const inputReadonlyStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '10px 14px',
-  background: 'color-mix(in srgb, var(--text) 3%, transparent)',
-  border: '1px solid var(--border)',
-  borderRadius: '8px',
-  color: 'var(--text-secondary)',
-  fontSize: '14px',
-  boxSizing: 'border-box',
-  cursor: 'default',
-  userSelect: 'none',
-}
-
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  color: 'var(--text-tertiary)',
-  fontSize: '11px',
-  fontWeight: 600,
-  textTransform: 'uppercase',
-  letterSpacing: '0.06em',
-  marginBottom: '6px',
-}
-
-const sectionTitleStyle: React.CSSProperties = {
-  color: 'var(--text)',
-  fontSize: '15px',
-  fontWeight: 600,
-  marginBottom: '20px',
-  paddingBottom: '12px',
-  borderBottom: '1px solid var(--border)',
-}
-
-const cardStyle: React.CSSProperties = {
-  background: 'var(--surface)',
-  border: '1px solid var(--border)',
-  borderRadius: '12px',
-  padding: '24px',
-  marginBottom: '16px',
-}
-
-function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
-  return (
-    <button
-      type="button"
-      onClick={() => !disabled && onChange(!checked)}
-      style={{
-        width: '44px', height: '24px', borderRadius: '12px',
-        background: checked ? 'var(--primary)' : 'var(--border)',
-        border: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
-        position: 'relative', flexShrink: 0,
-        transition: 'background 0.2s',
-        opacity: disabled ? 0.5 : 1,
-      }}
-      aria-checked={checked}
-      role="switch"
-    >
-      <div style={{
-        width: '18px', height: '18px', borderRadius: '50%', background: 'var(--primary-foreground)',
-        position: 'absolute', top: '3px',
-        left: checked ? '23px' : '3px',
-        transition: 'left 0.18s',
-      }} />
-    </button>
-  )
-}
-
-function ToggleRow({ label, description, checked, onChange }: {
-  label: string
-  description?: string
-  checked: boolean
-  onChange: (v: boolean) => void
-}) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
-      <div>
-        <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, marginBottom: description ? '2px' : 0 }}>{label}</p>
-        {description && <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>{description}</p>}
-      </div>
-      <Toggle checked={checked} onChange={onChange} />
-    </div>
-  )
 }
 
 const LANG_OPTIONS: { value: AppLocale; label: string }[] = [
@@ -101,6 +19,66 @@ const LANG_OPTIONS: { value: AppLocale; label: string }[] = [
   { value: 'it', label: 'Italiano' },
   { value: 'en', label: 'English' },
 ]
+
+function Scheda({ titolo, children }: { titolo: string; children: React.ReactNode }) {
+  return (
+    <section className="bg-surface border-border sh-scheda mb-4 rounded-xl border p-6">
+      <h2 className="text-text border-border mb-5 border-b pb-3 text-[15px] font-semibold">
+        {titolo}
+      </h2>
+      {children}
+    </section>
+  )
+}
+
+function CampoSolaLettura({ etichetta, valore }: { etichetta: string; valore: string }) {
+  return (
+    <div>
+      <span className="text-text-tertiary mb-1.5 block text-[11px] font-semibold tracking-wider uppercase">
+        {etichetta}
+      </span>
+      <div className="bg-text/3 border-border text-text-secondary cursor-default rounded-lg border px-3.5 py-2.5 text-sm select-none">
+        {valore}
+      </div>
+    </div>
+  )
+}
+
+function Interruttore({ acceso, onChange }: { acceso: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={acceso}
+      onClick={() => onChange(!acceso)}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${acceso ? 'bg-primary' : 'bg-border'}`}
+    >
+      <span
+        className={`bg-primary-foreground absolute top-[3px] h-[18px] w-[18px] rounded-full shadow-sm transition-[left] duration-200 ${
+          acceso ? 'left-[23px]' : 'left-[3px]'
+        }`}
+      />
+    </button>
+  )
+}
+
+function RigaInterruttore({ etichetta, descrizione, acceso, onChange, ultima }: {
+  etichetta: string
+  descrizione?: string
+  acceso: boolean
+  onChange: (v: boolean) => void
+  ultima?: boolean
+}) {
+  return (
+    <div className={`flex items-center justify-between gap-4 py-3 ${ultima ? '' : 'border-border border-b'}`}>
+      <div className="min-w-0">
+        <p className="text-text text-sm font-medium">{etichetta}</p>
+        {descrizione && <p className="text-text-tertiary mt-0.5 text-xs">{descrizione}</p>}
+      </div>
+      <Interruttore acceso={acceso} onChange={onChange} />
+    </div>
+  )
+}
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
@@ -166,163 +144,117 @@ export default function SettingsPage() {
   }
 
   return (
-    <div style={{ maxWidth: '640px' }}>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>
-          {t('title')}
-        </h1>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>
-          {t('subtitle')}
-        </p>
-      </div>
+    <div className="md:flex md:min-h-0 md:flex-1 md:flex-col">
+      <header className="mb-8 shrink-0">
+        <h1 className="text-text text-[26px] font-bold tracking-tight md:text-[34px]">{t('title')}</h1>
+        <p className="text-text-tertiary mt-1 text-sm">{t('subtitle')}</p>
+      </header>
 
-      {/* 1 — Profilo Agenzia */}
-      <div style={cardStyle}>
-        <p style={sectionTitleStyle}>{t('agencyProfileTitle')}</p>
-        {loadingProfile ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {[120, 200].map(w => (
-              <div key={w} style={{ height: '38px', background: 'var(--border)', borderRadius: '8px', width: `${w}px`, opacity: 0.5 }} />
-            ))}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <label style={labelStyle}>{t('agencyName')}</label>
-              <div style={inputReadonlyStyle}>{agencyName ?? '—'}</div>
+      {/* Le impostazioni sono più lunghe della finestra: scorrono qui dentro,
+          mentre titolo e menu restano fermi. */}
+      <div className="max-w-2xl md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-1">
+        <Scheda titolo={t('agencyProfileTitle')}>
+          {loadingProfile ? (
+            <div className="flex flex-col gap-3">
+              <div className="sh-scheletro h-[38px] w-32" />
+              <div className="sh-scheletro h-[38px] w-52" />
             </div>
-            <div>
-              <label style={labelStyle}>{t('accountEmail')}</label>
-              <div style={inputReadonlyStyle}>{email ?? '—'}</div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <CampoSolaLettura etichetta={t('agencyName')} valore={agencyName ?? '—'} />
+              <CampoSolaLettura etichetta={t('accountEmail')} valore={email ?? '—'} />
+              <p className="text-text-tertiary text-xs">{t('contactSupport')}</p>
             </div>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
-              {t('contactSupport')}
-            </p>
-          </div>
-        )}
-      </div>
+          )}
+        </Scheda>
 
-      {/* 2 — Preferenze */}
-      <div style={cardStyle}>
-        <p style={sectionTitleStyle}>{t('preferencesTitle')}</p>
-
-        <ToggleRow
-          label={t('darkTheme')}
-          description={t('darkThemeDesc')}
-          checked={theme === 'dark'}
-          onChange={handleThemeChange}
-        />
-
-        <div style={{ paddingTop: '16px' }}>
-          <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, marginBottom: '2px' }}>{t('languageTitle')}</p>
-          <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '12px' }}>
-            {t('languageDesc')}
-          </p>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {LANG_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => handleLangChange(opt.value)}
-                disabled={isPending}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '7px 14px', borderRadius: '8px',
-                  cursor: isPending ? 'not-allowed' : 'pointer',
-                  fontSize: '13px', fontWeight: 500,
-                  background: locale === opt.value ? 'color-mix(in srgb, var(--primary) 15%, transparent)' : 'transparent',
-                  border: `1px solid ${locale === opt.value ? 'color-mix(in srgb, var(--primary) 50%, transparent)' : 'var(--border)'}`,
-                  color: locale === opt.value ? 'var(--primary)' : 'var(--text-secondary)',
-                  opacity: isPending && pendingLocale !== opt.value ? 0.5 : 1,
-                  transition: 'all 0.15s',
-                }}
-              >
-                {isPending && pendingLocale === opt.value ? '...' : opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 3 — Piano abbonamento */}
-      <div style={cardStyle}>
-        <p style={sectionTitleStyle}>{t('planTitle')}</p>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center',
-                padding: '5px 14px', borderRadius: '99px',
-                background: 'color-mix(in srgb, var(--primary) 12%, transparent)', color: 'var(--primary)',
-                fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em',
-              }}>
-                PRO
-              </span>
-              <span style={{ color: 'var(--success)', fontSize: '13px', fontWeight: 500 }}>{t('planActive')}</span>
-            </div>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>{t('planPrice')}</p>
-          </div>
-          <button
-            disabled
-            title={t('upgradeSoon')}
-            style={{
-              padding: '9px 20px', borderRadius: '8px',
-              background: 'transparent',
-              border: '1px solid var(--border)',
-              color: 'var(--text-tertiary)', fontSize: '13px', fontWeight: 500,
-              cursor: 'not-allowed', opacity: 0.5,
-            }}
-          >
-            {t('upgradePlan')}
-          </button>
-        </div>
-      </div>
-
-      {/* 4 — Notifiche */}
-      <div style={cardStyle}>
-        <p style={sectionTitleStyle}>{t('notificationsTitle')}</p>
-        <ToggleRow
-          label={t('notifApplications')}
-          description={t('notifApplicationsDesc')}
-          checked={notifApplications}
-          onChange={handleNotifApplications}
-        />
-        <div style={{ borderBottom: 'none' }}>
-          <ToggleRow
-            label={t('notifProcedures')}
-            description={t('notifProceduresDesc')}
-            checked={notifProcedures}
-            onChange={handleNotifProcedures}
+        <Scheda titolo={t('preferencesTitle')}>
+          <RigaInterruttore
+            etichetta={t('darkTheme')}
+            descrizione={t('darkThemeDesc')}
+            acceso={theme === 'dark'}
+            onChange={handleThemeChange}
           />
-        </div>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginTop: '12px' }}>
-          {t('notifFootnote')}
-        </p>
-      </div>
 
-      {/* 5 — Account */}
-      <div style={cardStyle}>
-        <p style={sectionTitleStyle}>{t('accountTitle')}</p>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, marginBottom: '2px' }}>{t('logoutTitle')}</p>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>{t('logoutDesc')}</p>
+          <div className="pt-4">
+            <p className="text-text text-sm font-medium">{t('languageTitle')}</p>
+            <p className="text-text-tertiary mt-0.5 mb-3 text-xs">{t('languageDesc')}</p>
+            <div className="flex flex-wrap gap-2">
+              {LANG_OPTIONS.map(opt => {
+                const scelta = locale === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleLangChange(opt.value)}
+                    disabled={isPending}
+                    className={`rounded-lg border px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+                      scelta
+                        ? 'border-primary/50 bg-primary/15 text-primary'
+                        : 'border-border text-text-secondary hover:text-text'
+                    } ${isPending && pendingLocale !== opt.value ? 'opacity-50' : ''}`}
+                  >
+                    {isPending && pendingLocale === opt.value ? '…' : opt.label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          <a
-            href="/api/auth/logout"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              padding: '9px 20px', borderRadius: '8px',
-              background: 'color-mix(in srgb, var(--danger) 10%, transparent)',
-              border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)',
-              color: 'var(--danger)', fontSize: '13px', fontWeight: 500,
-              textDecoration: 'none',
-              transition: 'background 0.15s',
-            }}
-          >
-            {t('logout')}
-          </a>
-        </div>
+        </Scheda>
+
+        <Scheda titolo={t('planTitle')}>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="mb-1.5 flex items-center gap-3">
+                <span className="bg-terracotta/12 text-terracotta inline-flex rounded-full px-3.5 py-1 text-[13px] font-bold tracking-wider">
+                  PRO
+                </span>
+                <span className="text-success text-[13px] font-medium">{t('planActive')}</span>
+              </div>
+              <p className="text-text-tertiary text-[13px]">{t('planPrice')}</p>
+            </div>
+            <button
+              disabled
+              title={t('upgradeSoon')}
+              className="border-border text-text-tertiary rounded-lg border px-5 py-2 text-[13px] font-medium opacity-50"
+            >
+              {t('upgradePlan')}
+            </button>
+          </div>
+        </Scheda>
+
+        <Scheda titolo={t('notificationsTitle')}>
+          <RigaInterruttore
+            etichetta={t('notifApplications')}
+            descrizione={t('notifApplicationsDesc')}
+            acceso={notifApplications}
+            onChange={handleNotifApplications}
+          />
+          <RigaInterruttore
+            etichetta={t('notifProcedures')}
+            descrizione={t('notifProceduresDesc')}
+            acceso={notifProcedures}
+            onChange={handleNotifProcedures}
+            ultima
+          />
+          <p className="text-text-tertiary mt-3 text-xs">{t('notifFootnote')}</p>
+        </Scheda>
+
+        <Scheda titolo={t('accountTitle')}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-text text-sm font-medium">{t('logoutTitle')}</p>
+              <p className="text-text-tertiary mt-0.5 text-xs">{t('logoutDesc')}</p>
+            </div>
+            <a
+              href="/api/auth/logout"
+              className="border-danger/30 bg-danger/10 text-danger inline-flex items-center gap-2 rounded-lg border px-5 py-2 text-[13px] font-medium"
+            >
+              <IconaEsci className="h-4 w-4" />
+              {t('logout')}
+            </a>
+          </div>
+        </Scheda>
       </div>
     </div>
   )
