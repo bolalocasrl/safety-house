@@ -62,7 +62,8 @@
     "applicationsCount": "{count, plural, one {# candidatura} other {# candidature}}",
     "emptyTitle": "Inizia creando il primo annuncio",
     "emptyDesc": "Crea un annuncio per iniziare a raccogliere candidature verificate.",
-    "createListing": "Crea annuncio"
+    "createListing": "Crea annuncio",
+    "error": "Errore nel caricamento dei dati. Riprova tra qualche istante."
   },
   "listings": {
     "list": {
@@ -144,7 +145,9 @@
       "colReceived": "Ricevuta",
       "calculateScore": "Calcola Score",
       "startProcedure": "Avvia Procedimento",
-      "statusError": "Errore durante l'aggiornamento dello stato."
+      "statusError": "Errore durante l'aggiornamento dello stato.",
+      "copied": "Copiato ✓",
+      "copyFailed": "Copia non riuscita"
     }
   },
   "candidates": {

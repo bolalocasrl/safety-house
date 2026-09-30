@@ -142,16 +142,21 @@ async function ListingsTable() {
   }
 
   return (
+    // Le colonne hanno larghezze fisse per circa 900px complessivi. Con
+    // overflow:hidden, su finestra stretta l'ultima colonna veniva tagliata a
+    // metà — il bottone "Gestisci" spariva e non c'era modo di arrivarci.
+    // Ora la tabella scorre in orizzontale invece di perdere pezzi.
     <div style={{
       background: 'var(--surface)',
       border: '1px solid var(--border)',
       borderRadius: '12px',
-      overflow: 'hidden',
+      overflowX: 'auto',
     }}>
       {/* Table header */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 180px 120px 100px 110px 100px',
+        minWidth: '880px',
         padding: '12px 24px',
         borderBottom: '1px solid var(--border)',
         gap: '16px',
@@ -170,6 +175,7 @@ async function ListingsTable() {
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 180px 120px 100px 110px 100px',
+            minWidth: '880px',
             padding: '16px 24px',
             gap: '16px',
             alignItems: 'center',

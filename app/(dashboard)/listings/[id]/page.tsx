@@ -102,6 +102,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   const [notFound, setNotFound] = useState(false)
   const [statusUpdating, setStatusUpdating] = useState(false)
   const [statusError, setStatusError] = useState<string | null>(null)
+  const [esitoCopia, setEsitoCopia] = useState<'inattivo' | 'copiato' | 'fallito'>('inattivo')
   const [scoringLoading, setScoringLoading] = useState<Record<string, boolean>>({})
   const [startingProcedure, setStartingProcedure] = useState<Record<string, boolean>>({})
 
@@ -209,6 +210,20 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const publicLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/apply/${listing.public_link_token}`
+
+  // Il bottone prima copiava e basta, senza dire nulla: non si capiva se il
+  // clic fosse servito, e se la copia falliva (permesso negato dal browser,
+  // o pagina non servita in HTTPS) nessuno se ne accorgeva. L'esito torna da
+  // solo allo stato iniziale dopo due secondi.
+  async function copiaLink() {
+    try {
+      await navigator.clipboard.writeText(publicLink)
+      setEsitoCopia('copiato')
+    } catch {
+      setEsitoCopia('fallito')
+    }
+    setTimeout(() => setEsitoCopia('inattivo'), 2000)
+  }
   const req = listing.owner_requirements ?? {}
 
   // Classifica candidati verificati: punteggio più alto in cima, i non ancora
@@ -344,19 +359,30 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             {publicLink}
           </code>
           <button
-            onClick={() => navigator.clipboard.writeText(publicLink)}
+            onClick={copiaLink}
             style={{
               padding: '10px 16px',
               background: 'transparent',
-              border: '1px solid var(--border)',
+              border: `1px solid ${
+                esitoCopia === 'copiato' ? 'var(--success)'
+                : esitoCopia === 'fallito' ? 'var(--danger)'
+                : 'var(--border)'
+              }`,
               borderRadius: '8px',
-              color: 'var(--text-secondary)',
+              color:
+                esitoCopia === 'copiato' ? 'var(--success)'
+                : esitoCopia === 'fallito' ? 'var(--danger)'
+                : 'var(--text-secondary)',
               fontSize: '13px',
               cursor: 'pointer',
               flexShrink: 0,
+              whiteSpace: 'nowrap',
+              transition: 'color 0.15s ease, border-color 0.15s ease',
             }}
           >
-            {t('copy')}
+            {esitoCopia === 'copiato' ? t('copied')
+             : esitoCopia === 'fallito' ? t('copyFailed')
+             : t('copy')}
           </button>
           <a
             href={`/apply/${listing.public_link_token}`}

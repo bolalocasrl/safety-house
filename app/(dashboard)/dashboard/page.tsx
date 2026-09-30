@@ -28,10 +28,10 @@ export default async function DashboardPage() {
 
   // Query parallele: contatori + ultimi 3 annunci attivi
   const [
-    { count: activeListingsCount },
-    { data: agencyListingIds },
-    { data: recentListings },
-    { count: activeProceduresCount },
+    { count: activeListingsCount, error: erroreAnnunciAttivi },
+    { data: agencyListingIds, error: erroreElencoAnnunci },
+    { data: recentListings, error: erroreUltimiAnnunci },
+    { count: activeProceduresCount, error: erroreProcedimenti },
   ] = await Promise.all([
     supabase
       .from('listings')
@@ -61,12 +61,32 @@ export default async function DashboardPage() {
 
   // Conta tutte le candidature per le listings dell'agenzia
   const listingIds = (agencyListingIds ?? []).map(l => l.id)
-  const { count: applicationsCount } = listingIds.length > 0
+  const { count: applicationsCount, error: erroreCandidature } = listingIds.length > 0
     ? await supabase
         .from('applications')
         .select('*', { count: 'exact', head: true })
         .in('listing_id', listingIds)
-    : { count: 0 }
+    : { count: 0, error: null }
+
+  // Se una qualsiasi lettura fallisce va detto. Prima l'esito non veniva
+  // guardato: un errore del database diventava un tranquillo "0 annunci,
+  // 0 candidature", indistinguibile da un'agenzia che non ha ancora
+  // inserito nulla — e l'agente avrebbe pensato di aver perso i dati.
+  const erroreCaricamento =
+    erroreAnnunciAttivi ?? erroreElencoAnnunci ?? erroreUltimiAnnunci ??
+    erroreProcedimenti ?? erroreCandidature
+
+  if (erroreCaricamento) {
+    console.error('[dashboard] lettura fallita:', erroreCaricamento.message)
+    return (
+      <div>
+        <h1 className="text-text text-2xl font-bold tracking-tight md:text-[28px]">{t('title')}</h1>
+        <div className="border-danger/35 bg-danger/10 text-danger mt-6 rounded-xl border px-5 py-4 text-sm">
+          {t('error')}
+        </div>
+      </div>
+    )
+  }
 
   const contatori = [
     {

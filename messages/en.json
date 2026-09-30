@@ -62,7 +62,8 @@
     "applicationsCount": "{count, plural, one {# application} other {# applications}}",
     "emptyTitle": "Start by creating your first listing",
     "emptyDesc": "Create a listing to start collecting verified applications.",
-    "createListing": "Create listing"
+    "createListing": "Create listing",
+    "error": "Could not load your data. Please try again in a moment."
   },
   "listings": {
     "list": {
@@ -144,7 +145,9 @@
       "colReceived": "Received",
       "calculateScore": "Calculate score",
       "startProcedure": "Start procedure",
-      "statusError": "Error updating the status."
+      "statusError": "Error updating the status.",
+      "copied": "Copied ✓",
+      "copyFailed": "Couldn't copy"
     }
   },
   "candidates": {
