@@ -134,7 +134,7 @@ export default async function CandidateProfilePage({ params }: { params: Promise
   const maxAffordableRent = c.monthly_income ? c.monthly_income / 3 : null
 
   return (
-    <div>
+    <div className="md:flex md:min-h-0 md:flex-1 md:flex-col">
       {/* Back link */}
       <Link href="/candidates" className="text-text-tertiary hover:text-text mb-2 inline-flex items-center gap-1.5 text-[13px] transition-colors">
         <IconaFreccia className="h-3.5 w-3.5 rotate-180" />
@@ -173,6 +173,9 @@ export default async function CandidateProfilePage({ params }: { params: Promise
           )}
         </div>
       </div>
+
+      {/* Da qui in giù scorre; il titolo resta fermo in alto. */}
+      <div className="md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-1">
 
       {/* Grid 2 colonne: Dati personali + Situazione lavorativa */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
@@ -419,6 +422,7 @@ export default async function CandidateProfilePage({ params }: { params: Promise
             })}
           </>
         )}
+      </div>
       </div>
     </div>
   )

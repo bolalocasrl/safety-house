@@ -173,7 +173,7 @@ export default function ProcedureDetailPage({ params }: { params: Promise<{ id: 
   const currentStep = STEPS.find(s => s.n === procedure.step_current)
 
   return (
-    <div>
+    <div className="md:flex md:min-h-0 md:flex-1 md:flex-col">
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
         <Link href="/procedures" className="text-text-tertiary hover:text-text mb-2 inline-flex items-center gap-1.5 text-[13px] transition-colors">
@@ -200,6 +200,9 @@ export default function ProcedureDetailPage({ params }: { params: Promise<{ id: 
           </span>
         </div>
       </div>
+
+      {/* Da qui in giù scorre; il titolo resta fermo in alto. */}
+      <div className="md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-1">
 
       {/* Stepper */}
       <div className="bg-surface border-border sh-scheda mb-5 rounded-xl border px-8 py-7">
@@ -347,6 +350,7 @@ export default function ProcedureDetailPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

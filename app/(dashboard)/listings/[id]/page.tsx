@@ -238,7 +238,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   })
 
   return (
-    <div>
+    <div className="md:flex md:min-h-0 md:flex-1 md:flex-col">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
         <div>
@@ -300,6 +300,9 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       </div>
+
+      {/* Da qui in giù scorre; il titolo resta fermo in alto. */}
+      <div className="md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-1">
 
       {statusError && (
         <div style={{ background: 'color-mix(in srgb, var(--danger) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)', borderRadius: '8px', padding: '12px 16px', color: 'var(--danger)', fontSize: '13px', marginBottom: '20px' }}>
@@ -525,6 +528,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             ))}
           </>
         )}
+      </div>
       </div>
     </div>
   )
