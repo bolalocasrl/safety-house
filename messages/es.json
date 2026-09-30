@@ -147,7 +147,16 @@
       "startProcedure": "Iniciar trámite",
       "statusError": "Error al actualizar el estado.",
       "copied": "¡Copiado! ✓",
-      "copyFailed": "No se pudo copiar"
+      "copyFailed": "No se pudo copiar",
+      "photosTitle": "Fotos del anuncio",
+      "photosAdd": "Añadir fotos",
+      "photosEmpty": "Todavía no hay fotos. Añádelas para que el anuncio resulte más convincente.",
+      "photosCover": "Portada",
+      "photosSetCover": "Poner de portada",
+      "photosDelete": "Eliminar",
+      "photosUploading": "Subiendo…",
+      "photosError": "No se ha podido subir. Inténtalo de nuevo.",
+      "photosNotImage": "Este archivo no es una imagen."
     }
   },
   "candidates": {

@@ -9,6 +9,7 @@ import { DocumentStatusBadge, type DocumentStatus } from '@/components/document-
 import { TestataPagina, ElencoRighe } from '@/components/scheletro'
 import Link from 'next/link'
 import { IconaFreccia } from '@/components/icone'
+import GestoreFoto from '@/components/gestore-foto'
 
 type OwnerRequirements = {
   no_pets?: boolean
@@ -27,6 +28,7 @@ type Listing = {
   status: 'active' | 'paused' | 'closed'
   public_link_token: string
   owner_requirements: OwnerRequirements | null
+  foto: unknown
   created_at: string
 }
 
@@ -112,7 +114,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     async function load() {
       const { data: listingData, error: listingError } = await supabase
         .from('listings')
-        .select('id, title, address, city, monthly_rent, rooms, status, public_link_token, owner_requirements, created_at')
+        .select('id, title, address, city, monthly_rent, rooms, status, public_link_token, owner_requirements, foto, created_at')
         .eq('id', id)
         .single()
 
@@ -344,6 +346,11 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             <Req label={t('minIncomeRatio')} value={req.min_income_ratio != null ? `${req.min_income_ratio}×` : tc('dash')} />
           </div>
         </div>
+      </div>
+
+      {/* Foto dell'annuncio */}
+      <div className="bg-surface border-border sh-scheda mb-5 rounded-xl border p-6">
+        <GestoreFoto listingId={listing.id} fotoIniziali={listing.foto} />
       </div>
 
       {/* Link pubblico candidatura */}

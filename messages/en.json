@@ -147,7 +147,16 @@
       "startProcedure": "Start procedure",
       "statusError": "Error updating the status.",
       "copied": "Copied ✓",
-      "copyFailed": "Couldn't copy"
+      "copyFailed": "Couldn't copy",
+      "photosTitle": "Listing photos",
+      "photosAdd": "Add photos",
+      "photosEmpty": "No photos yet. Add some to make the listing more convincing to applicants.",
+      "photosCover": "Cover",
+      "photosSetCover": "Make cover",
+      "photosDelete": "Delete",
+      "photosUploading": "Uploading…",
+      "photosError": "Upload failed. Please try again.",
+      "photosNotImage": "That file is not an image."
     }
   },
   "candidates": {

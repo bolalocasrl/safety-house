@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/format'
 import { eLimiteInvioEmail } from '@/lib/errori-auth'
 import { CampoNazionalita, CampoTelefono } from '@/components/campi-candidatura'
+import GalleriaAnnuncio from '@/components/galleria-annuncio'
 
 type Listing = {
   id: string
@@ -14,6 +15,7 @@ type Listing = {
   city: string
   monthly_rent: number
   rooms: number
+  foto: unknown
 }
 
 type Step1 = {
@@ -330,6 +332,8 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
 
         {/* Riepilogo annuncio */}
         <aside className="bg-surface border-border sh-scheda mb-8 rounded-xl border px-6 py-5 lg:sticky lg:top-10 lg:mb-0">
+          <GalleriaAnnuncio foto={listing.foto} />
+
           <p className="text-text-tertiary mb-1 text-[11px] font-semibold tracking-wider uppercase">
             {t('header.applyingFor')}
           </p>

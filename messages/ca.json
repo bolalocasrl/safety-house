@@ -147,7 +147,16 @@
       "startProcedure": "Inicia el tràmit",
       "statusError": "Error en actualitzar l'estat.",
       "copied": "Copiat ✓",
-      "copyFailed": "No s'ha pogut copiar"
+      "copyFailed": "No s'ha pogut copiar",
+      "photosTitle": "Fotos de l'anunci",
+      "photosAdd": "Afegeix fotos",
+      "photosEmpty": "Encara no hi ha fotos. Afegeix-ne perquè l'anunci resulti més convincent.",
+      "photosCover": "Portada",
+      "photosSetCover": "Posa de portada",
+      "photosDelete": "Elimina",
+      "photosUploading": "Pujant…",
+      "photosError": "No s'ha pogut pujar. Torna-ho a provar.",
+      "photosNotImage": "Aquest fitxer no és una imatge."
     }
   },
   "candidates": {

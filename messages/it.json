@@ -147,7 +147,16 @@
       "startProcedure": "Avvia Procedimento",
       "statusError": "Errore durante l'aggiornamento dello stato.",
       "copied": "Copiato ✓",
-      "copyFailed": "Copia non riuscita"
+      "copyFailed": "Copia non riuscita",
+      "photosTitle": "Foto dell'annuncio",
+      "photosAdd": "Aggiungi foto",
+      "photosEmpty": "Nessuna foto. Aggiungine per rendere l'annuncio più convincente per chi si candida.",
+      "photosCover": "Copertina",
+      "photosSetCover": "Metti in copertina",
+      "photosDelete": "Elimina",
+      "photosUploading": "Caricamento…",
+      "photosError": "Caricamento non riuscito. Riprova.",
+      "photosNotImage": "Questo file non è un'immagine."
     }
   },
   "candidates": {

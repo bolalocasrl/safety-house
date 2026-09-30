@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import { formatCurrency } from '@/lib/format'
 import { IconaAnnunci, IconaPiu, IconaFreccia } from '@/components/icone'
 import { ElencoRighe } from '@/components/scheletro'
+import Image from 'next/image'
+import { elencoFoto, urlFoto } from '@/lib/foto'
 
 type Listing = {
   id: string
@@ -16,6 +18,7 @@ type Listing = {
   status: 'active' | 'paused' | 'closed'
   created_at: string
   applications: { count: number }[]
+  foto: unknown
 }
 
 // Le colonne della tabella. Ripetute in intestazione e righe: stando in una
@@ -66,7 +69,7 @@ async function ListingsTable() {
 
   const { data: listings, error } = await supabase
     .from('listings')
-    .select('id, title, address, city, monthly_rent, rooms, status, created_at, applications(count)')
+    .select('id, title, address, city, monthly_rent, rooms, status, created_at, foto, applications(count)')
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -101,11 +104,31 @@ async function ListingsTable() {
             href={`/listings/${listing.id}`}
             className={`hover:bg-primary-subtle/50 group grid grid-cols-1 gap-2 px-5 py-4 transition-colors md:items-center md:gap-4 ${COLONNE}`}
           >
-            <div className="min-w-0">
-              <p className="text-text truncate text-sm font-medium">{listing.title}</p>
-              {listing.rooms > 0 && (
-                <p className="text-text-tertiary mt-0.5 text-xs">{t('rooms', { count: listing.rooms })}</p>
-              )}
+            <div className="flex min-w-0 items-center gap-3">
+              {(() => {
+                const copertina = elencoFoto(listing.foto)[0]
+                return copertina ? (
+                  <Image
+                    src={urlFoto(copertina)}
+                    alt=""
+                    width={56}
+                    height={42}
+                    className="border-border h-10 w-14 shrink-0 rounded border object-cover"
+                  />
+                ) : (
+                  // Segnaposto della stessa misura: senza, le righe con foto e
+                  // quelle senza avrebbero i titoli disallineati tra loro.
+                  <span className="bg-bg border-border text-text-tertiary flex h-10 w-14 shrink-0 items-center justify-center rounded border">
+                    <IconaAnnunci className="h-4 w-4" />
+                  </span>
+                )
+              })()}
+              <div className="min-w-0">
+                <p className="text-text truncate text-sm font-medium">{listing.title}</p>
+                {listing.rooms > 0 && (
+                  <p className="text-text-tertiary mt-0.5 text-xs">{t('rooms', { count: listing.rooms })}</p>
+                )}
+              </div>
             </div>
 
             <div className="min-w-0">
