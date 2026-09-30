@@ -75,7 +75,7 @@ export default function MenuLaterale({
               className={[
                 'flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm whitespace-nowrap transition-colors',
                 attiva
-                  ? 'bg-primary-subtle text-primary font-semibold'
+                  ? 'sh-voce-attiva bg-primary-subtle text-primary font-semibold'
                   : 'text-text-secondary hover:bg-primary-subtle/60 hover:text-text font-medium',
               ].join(' ')}
             >

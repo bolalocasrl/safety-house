@@ -25,7 +25,7 @@ const COLONNE = 'md:grid-cols-[1fr_170px_120px_90px_120px_40px]'
 async function EmptyState() {
   const t = await getTranslations('listings.list')
   return (
-    <div className="bg-surface border-border rounded-xl border px-6 py-14 text-center">
+    <div className="bg-surface border-border sh-scheda rounded-xl border px-6 py-14 text-center">
       <div className="bg-primary/10 text-primary mx-auto mb-5 inline-flex rounded-2xl p-4">
         <IconaAnnunci className="h-7 w-7" />
       </div>
@@ -82,7 +82,7 @@ async function ListingsTable() {
   }
 
   return (
-    <div className="bg-surface border-border overflow-hidden rounded-xl border">
+    <div className="bg-surface border-border sh-scheda overflow-hidden rounded-xl border">
       {/* Intestazione: solo su schermo largo. Su telefono le righe diventano
           schede impilate, dove i valori si spiegano da soli. */}
       <div className={`border-border text-text-tertiary hidden gap-4 border-b px-5 py-3 text-[11px] font-semibold tracking-wider uppercase md:grid ${COLONNE}`}>
@@ -147,7 +147,7 @@ export default async function ListingsPage() {
     <div>
       <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-text text-2xl font-bold tracking-tight md:text-[28px]">{t('title')}</h1>
+          <h1 className="text-text text-[26px] font-bold tracking-tight md:text-[34px]">{t('title')}</h1>
           <p className="text-text-tertiary mt-1 text-sm">{t('subtitle')}</p>
         </div>
         <Link

@@ -80,7 +80,7 @@ export default async function DashboardPage() {
     console.error('[dashboard] lettura fallita:', erroreCaricamento.message)
     return (
       <div>
-        <h1 className="text-text text-2xl font-bold tracking-tight md:text-[28px]">{t('title')}</h1>
+        <h1 className="text-text text-[26px] font-bold tracking-tight md:text-[34px]">{t('title')}</h1>
         <div className="border-danger/35 bg-danger/10 text-danger mt-6 rounded-xl border px-5 py-4 text-sm">
           {t('error')}
         </div>
@@ -88,24 +88,31 @@ export default async function DashboardPage() {
     )
   }
 
+  // Un colore diverso per contatore, presi dalla palette calda del progetto.
+  // Terracotta e salvia erano definiti in globals.css ma non usati da nessuna
+  // parte: l'unico colore in giro era il blu, ed è il motivo per cui l'insieme
+  // risultava spento.
   const contatori = [
     {
       etichetta: t('statActiveListings'),
       valore: activeListingsCount ?? 0,
       Icona: IconaAnnunci,
-      tinta: 'text-primary bg-primary/10',
+      testo: 'text-primary',
+      sfondo: 'bg-primary/12',
     },
     {
       etichetta: t('statApplications'),
       valore: applicationsCount ?? 0,
       Icona: IconaCandidati,
-      tinta: 'text-success bg-success/10',
+      testo: 'text-sage',
+      sfondo: 'bg-sage/15',
     },
     {
       etichetta: t('statProcedures'),
       valore: activeProceduresCount ?? 0,
       Icona: IconaProcedimenti,
-      tinta: 'text-warning bg-warning/10',
+      testo: 'text-terracotta',
+      sfondo: 'bg-terracotta/12',
     },
   ]
 
@@ -117,7 +124,7 @@ export default async function DashboardPage() {
           Su schermo stretto il bottone va a capo sotto il titolo. */}
       <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-text text-2xl font-bold tracking-tight md:text-[28px]">
+          <h1 className="text-text text-[26px] font-bold tracking-tight md:text-[34px]">
             {t('title')}
           </h1>
           <p className="text-text-tertiary mt-1 truncate text-sm">
@@ -135,26 +142,28 @@ export default async function DashboardPage() {
       </header>
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {contatori.map(({ etichetta, valore, Icona, tinta }) => (
+        {contatori.map(({ etichetta, valore, Icona, testo, sfondo }) => (
           <div
             key={etichetta}
-            className="bg-surface border-border rounded-xl border p-5"
+            className="bg-surface border-border sh-scheda flex items-center gap-4 rounded-xl border p-5"
           >
-            <div className={`mb-4 inline-flex rounded-lg p-2 ${tinta}`}>
-              <Icona className="h-[18px] w-[18px]" />
+            <div className={`inline-flex shrink-0 rounded-xl p-3 ${sfondo} ${testo}`}>
+              <Icona className="h-5 w-5" />
             </div>
-            <div className="text-text text-[32px] leading-none font-bold [font-family:var(--font-sora)]">
-              {valore}
-            </div>
-            <div className="text-text-tertiary mt-2 text-sm">
-              {etichetta}
+            <div className="min-w-0">
+              <div className={`text-[34px] leading-none font-bold [font-family:var(--font-sora)] ${testo}`}>
+                {valore}
+              </div>
+              <div className="text-text-secondary mt-1.5 text-[13px] font-medium">
+                {etichetta}
+              </div>
             </div>
           </div>
         ))}
       </div>
 
       {hasActiveListings ? (
-        <section className="bg-surface border-border overflow-hidden rounded-xl border">
+        <section className="bg-surface border-border sh-scheda overflow-hidden rounded-xl border">
           <div className="border-border flex items-center justify-between border-b px-5 py-4">
             <h2 className="text-text text-[15px] font-semibold">
               {t('recentListingsTitle')}
@@ -197,7 +206,7 @@ export default async function DashboardPage() {
           </div>
         </section>
       ) : (
-        <section className="bg-surface border-border rounded-xl border px-6 py-14 text-center">
+        <section className="bg-surface border-border sh-scheda rounded-xl border px-6 py-14 text-center">
           <div className="bg-primary/10 text-primary mx-auto mb-5 inline-flex rounded-2xl p-4">
             <IconaAnnunci className="h-7 w-7" />
           </div>

@@ -20,7 +20,7 @@ const COLONNE = 'md:grid-cols-[1fr_180px_170px_130px_100px_24px]'
 async function EmptyState() {
   const t = await getTranslations('procedures.list')
   return (
-    <div className="bg-surface border-border rounded-xl border px-6 py-14 text-center">
+    <div className="bg-surface border-border sh-scheda rounded-xl border px-6 py-14 text-center">
       <div className="bg-warning/12 text-warning mx-auto mb-5 inline-flex rounded-2xl p-4">
         <IconaProcedimenti className="h-7 w-7" />
       </div>
@@ -79,7 +79,7 @@ async function ProceduresTable() {
   if (rows.length === 0) return <EmptyState />
 
   return (
-    <div className="bg-surface border-border overflow-hidden rounded-xl border">
+    <div className="bg-surface border-border sh-scheda overflow-hidden rounded-xl border">
       <div className={`border-border text-text-tertiary hidden gap-4 border-b px-5 py-3 text-[11px] font-semibold tracking-wider uppercase md:grid ${COLONNE}`}>
         <span>{t('colCandidate')}</span>
         <span>{t('colListing')}</span>
@@ -167,7 +167,7 @@ export default async function ProceduresPage() {
   return (
     <div>
       <header className="mb-8">
-        <h1 className="text-text text-2xl font-bold tracking-tight md:text-[28px]">{t('title')}</h1>
+        <h1 className="text-text text-[26px] font-bold tracking-tight md:text-[34px]">{t('title')}</h1>
         <p className="text-text-tertiary mt-1 text-sm">{t('subtitle')}</p>
       </header>
 

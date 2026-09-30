@@ -1,9 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #faf6f0;
-  --surface: #fffdf9;
-  --border: #e8e1d8;
+  /* Il fondo è più profondo della superficie delle schede: prima i due valori
+     erano quasi identici (#faf6f0 contro #fffdf9) e le schede non si
+     staccavano da niente — da cui la sensazione di piatto. */
+  --bg: #f1ebe1;
+  --surface: #fffefb;
+  --border: #e2d9cc;
   --primary: #1060e8;
   --primary-subtle: #edf4ff;
   --primary-foreground: #ffffff;
@@ -20,9 +23,9 @@
 }
 
 [data-theme="dark"] {
-  --bg: #1a1613;
+  --bg: #15110e;
   --surface: #241e1a;
-  --border: #3a322b;
+  --border: #3d342c;
   --primary-subtle: #1b2a4a;
   --terracotta: #d97a56;
   --sage: #8fa07e;
@@ -130,4 +133,47 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 @media (prefers-reduced-motion: reduce) {
   .sh-scheletro { animation: none; opacity: 0.7; }
   button, a, select, [role="button"] { transition: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   Rilievo delle schede.
+
+   Ombra calda, non grigia: costruita sul colore del testo invece che sul nero,
+   così resta dentro la stessa famiglia della palette e non "sporca" il fondo
+   crema. Poca opacità e molta sfocatura — deve dare profondità, non disegnare
+   un contorno.
+--------------------------------------------------------------------------- */
+
+.sh-scheda {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--text) 6%, transparent),
+    0 10px 28px -14px color-mix(in srgb, var(--text) 22%, transparent);
+}
+
+[data-theme="dark"] .sh-scheda {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 10px 28px -14px rgb(0 0 0 / 0.6);
+}
+
+/* Barretta colorata a sinistra della voce di menu aperta. Solo da schermo
+   largo in su: sotto i 768px il menu è una barra orizzontale e una linea
+   verticale a sinistra non vorrebbe dire niente. */
+@media (max-width: 767px) {
+  .sh-voce-attiva::before { display: none; }
+}
+
+.sh-voce-attiva {
+  position: relative;
+}
+.sh-voce-attiva::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  translate: -6px -50%;
+  width: 3px;
+  height: 60%;
+  border-radius: 0 3px 3px 0;
+  background: var(--primary);
 }
