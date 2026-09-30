@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/format'
 import { DocumentStatusBadge, type DocumentStatus } from '@/components/document-status-badge'
 import { TestataPagina, ElencoRighe } from '@/components/scheletro'
+import Link from 'next/link'
+import { IconaFreccia } from '@/components/icone'
 
 type OwnerRequirements = {
   no_pets?: boolean
@@ -204,7 +206,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     return (
       <div style={{ textAlign: 'center', paddingTop: '64px' }}>
         <p style={{ color: 'var(--text)', fontSize: '18px', marginBottom: '8px' }}>{t('notFound')}</p>
-        <a href="/listings" style={{ color: 'var(--primary)', fontSize: '14px' }}>{t('backToListings')}</a>
+        <Link href="/listings" className="text-primary text-sm">{t('backToListings')}</Link>
       </div>
     )
   }
@@ -240,10 +242,11 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
         <div>
-          <a href="/listings" style={{ color: 'var(--text-tertiary)', fontSize: '13px', textDecoration: 'none', display: 'inline-block', marginBottom: '8px' }}>
+          <Link href="/listings" className="text-text-tertiary hover:text-text mb-2 inline-flex items-center gap-1.5 text-[13px] transition-colors">
+            <IconaFreccia className="h-3.5 w-3.5 rotate-180" />
             {t('backToListings')}
-          </a>
-          <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '6px' }}>
+          </Link>
+          <h1 className="text-text mb-1.5 text-[26px] font-bold tracking-tight md:text-[32px]">
             {listing.title}
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -307,7 +310,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
 
         {/* Dettagli immobile */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+        <div className="bg-surface border-border sh-scheda rounded-xl border p-6">
           <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
             {t('propertyDetailsTitle')}
           </p>
@@ -327,7 +330,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Requisiti proprietario */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+        <div className="bg-surface border-border sh-scheda rounded-xl border p-6">
           <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
             {t('requirementsTitle')}
           </p>
@@ -341,7 +344,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* Link pubblico candidatura */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
+      <div className="bg-surface border-border sh-scheda mb-5 rounded-xl border p-6">
         <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
           {t('publicLinkTitle')}
         </p>
@@ -405,7 +408,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* Candidature */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
+      <div className="bg-surface border-border sh-scheda overflow-hidden rounded-xl border">
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ color: 'var(--text)', fontSize: '15px', fontWeight: 600 }}>{t('applicationsTitle')}</p>
           <span style={{

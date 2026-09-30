@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -148,7 +149,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     return (
       <div style={{ textAlign: 'center', paddingTop: '64px' }}>
         <p style={{ color: 'var(--text)', fontSize: '18px', marginBottom: '8px' }}>{t('edit.notFound')}</p>
-        <a href="/listings" style={{ color: 'var(--primary)', fontSize: '14px' }}>{t('edit.backToListings')}</a>
+        <Link href="/listings" className="text-primary text-sm">{t('edit.backToListings')}</Link>
       </div>
     )
   }
@@ -159,7 +160,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         <a href={`/listings/${id}`} style={{ color: 'var(--text-tertiary)', fontSize: '13px', textDecoration: 'none', display: 'inline-block', marginBottom: '8px' }}>
           {t('edit.backToListing')}
         </a>
-        <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>
+        <h1 className="text-text mb-1 text-[26px] font-bold tracking-tight md:text-[32px]">
           {t('edit.title')}
         </h1>
         <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>

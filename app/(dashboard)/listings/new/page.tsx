@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -82,7 +83,7 @@ export default function NewListingPage() {
   return (
     <div>
       <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>
+        <h1 className="text-text mb-1 text-[26px] font-bold tracking-tight md:text-[32px]">
           {t('new.title')}
         </h1>
         <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>
@@ -256,7 +257,7 @@ export default function NewListingPage() {
             >
               {loading ? t('new.submitting') : t('new.submit')}
             </button>
-            <a
+            <Link
               href="/listings"
               style={{
                 padding: '12px 20px',
@@ -271,7 +272,7 @@ export default function NewListingPage() {
               }}
             >
               {tc('cancel')}
-            </a>
+            </Link>
           </div>
         </form>
       </div>

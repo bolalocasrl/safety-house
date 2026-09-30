@@ -3,6 +3,8 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency, formatDate } from '@/lib/format'
 import { DocumentStatusBadge, type DocumentStatus } from '@/components/document-status-badge'
+import Link from 'next/link'
+import { IconaFreccia } from '@/components/icone'
 
 type Candidate = {
   id: string
@@ -66,7 +68,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+    <div className="bg-surface border-border sh-scheda rounded-xl border p-6">
       <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
         {title}
       </p>
@@ -134,9 +136,10 @@ export default async function CandidateProfilePage({ params }: { params: Promise
   return (
     <div>
       {/* Back link */}
-      <a href="/candidates" style={{ color: 'var(--text-tertiary)', fontSize: '13px', textDecoration: 'none', display: 'inline-block', marginBottom: '20px' }}>
+      <Link href="/candidates" className="text-text-tertiary hover:text-text mb-2 inline-flex items-center gap-1.5 text-[13px] transition-colors">
+        <IconaFreccia className="h-3.5 w-3.5 rotate-180" />
         {t('backToCandidates')}
-      </a>
+      </Link>
 
       {/* Header */}
       <div style={{
@@ -145,7 +148,7 @@ export default async function CandidateProfilePage({ params }: { params: Promise
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px',
       }}>
         <div>
-          <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '6px' }}>
+          <h1 className="text-text mb-1.5 text-[26px] font-bold tracking-tight md:text-[32px]">
             {c.full_name ?? t('unnamed')}
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
@@ -296,7 +299,7 @@ export default async function CandidateProfilePage({ params }: { params: Promise
       </div>
 
       {/* Candidature — full width */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
+      <div className="bg-surface border-border sh-scheda overflow-hidden rounded-xl border">
         <div style={{
           padding: '20px 24px', borderBottom: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',

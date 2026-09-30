@@ -5,6 +5,8 @@ import { useLocale, useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate } from '@/lib/format'
 import { TestataPagina, ElencoRighe } from '@/components/scheletro'
+import Link from 'next/link'
+import { IconaFreccia } from '@/components/icone'
 
 type Procedure = {
   id: string
@@ -162,7 +164,7 @@ export default function ProcedureDetailPage({ params }: { params: Promise<{ id: 
     return (
       <div style={{ textAlign: 'center', paddingTop: '64px' }}>
         <p style={{ color: 'var(--text)', fontSize: '18px', marginBottom: '8px' }}>{t('notFound')}</p>
-        <a href="/procedures" style={{ color: 'var(--primary)', fontSize: '14px' }}>{t('backToProceduresLink')}</a>
+        <Link href="/procedures" className="text-primary text-sm">{t('backToProceduresLink')}</Link>
       </div>
     )
   }
@@ -174,12 +176,13 @@ export default function ProcedureDetailPage({ params }: { params: Promise<{ id: 
     <div>
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
-        <a href="/procedures" style={{ color: 'var(--text-tertiary)', fontSize: '13px', textDecoration: 'none', display: 'inline-block', marginBottom: '8px' }}>
+        <Link href="/procedures" className="text-text-tertiary hover:text-text mb-2 inline-flex items-center gap-1.5 text-[13px] transition-colors">
+          <IconaFreccia className="h-3.5 w-3.5 rotate-180" />
           {t('backToProcedures')}
-        </a>
+        </Link>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h1 style={{ color: 'var(--text)', fontSize: '22px', fontWeight: 700, marginBottom: '4px' }}>
+            <h1 className="text-text mb-1 text-[24px] font-bold tracking-tight md:text-[30px]">
               {procedure.candidates?.full_name ?? t('defaultCandidateName')}
             </h1>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>
@@ -199,7 +202,7 @@ export default function ProcedureDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Stepper */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '28px 32px', marginBottom: '20px' }}>
+      <div className="bg-surface border-border sh-scheda mb-5 rounded-xl border px-8 py-7">
         <StepIndicator stepCurrent={procedure.step_current} status={procedure.status} steps={STEPS} />
 
         {/* Completato banner */}
@@ -320,7 +323,7 @@ export default function ProcedureDetailPage({ params }: { params: Promise<{ id: 
 
       {/* Step completati */}
       {procedure.step_current > 1 && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px 24px' }}>
+        <div className="bg-surface border-border sh-scheda rounded-xl border px-6 py-5">
           <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
             {t('completedStepsTitle')}
           </p>
