@@ -54,10 +54,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
   ]
 
   return (
-    <div className="bg-bg flex min-h-screen flex-col md:flex-row">
+    // Da schermo largo la cornice sta ferma e a scorrere è solo il contenuto:
+    // l'altezza è bloccata a quella della finestra e lo scorrimento viene
+    // gestito dalle singole pagine, dentro la tabella. Così titolo, menu e
+    // bottoni restano sempre sott'occhio.
+    // Su telefono no: lì la pagina scorre tutta intera, che è il
+    // comportamento che ci si aspetta da un sito su un telefono.
+    <div className="bg-bg flex min-h-screen flex-col md:h-screen md:flex-row md:overflow-hidden">
       <MenuLaterale voci={voci} marchio={t('brand')} etichettaEsci={t('logout')} />
-      <main className="min-w-0 flex-1 px-5 py-6 md:px-8 md:py-8">
-        <div className="mx-auto w-full max-w-5xl">
+      {/* overflow-y-auto e non hidden: le pagine che gestiscono lo scorrimento
+          al proprio interno restano ferme comunque (il loro contenuto occupa
+          esattamente l'altezza disponibile), mentre quelle che non lo fanno
+          ancora — Impostazioni, i dettagli — continuano a scorrere invece di
+          vedersi tagliare la parte bassa. */}
+      <main className="min-w-0 flex-1 px-5 py-6 md:flex md:flex-col md:overflow-y-auto md:px-8 md:py-8">
+        <div className="mx-auto w-full max-w-5xl md:flex md:min-h-0 md:flex-1 md:flex-col">
           {children}
         </div>
       </main>

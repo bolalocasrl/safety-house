@@ -55,7 +55,7 @@ export default function MenuLaterale({
   const percorso = usePathname()
 
   return (
-    <aside className="bg-surface border-border flex shrink-0 flex-col border-b md:sticky md:top-0 md:h-screen md:w-60 md:border-r md:border-b-0">
+    <aside className="bg-surface border-border flex shrink-0 flex-col border-b md:h-full md:w-60 md:border-r md:border-b-0">
       <div className="flex items-center gap-2.5 px-5 pt-4 pb-3 md:pt-6 md:pb-5">
         <Marchio className="text-primary h-7 w-7 shrink-0" />
         <span className="text-text truncate text-[17px] font-bold tracking-tight [font-family:var(--font-sora)]">

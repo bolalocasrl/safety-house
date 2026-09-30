@@ -82,7 +82,7 @@ async function ListingsTable() {
   }
 
   return (
-    <div className="bg-surface border-border sh-scheda overflow-hidden rounded-xl border">
+    <div className="bg-surface border-border sh-scheda overflow-hidden rounded-xl border md:flex md:min-h-0 md:flex-1 md:flex-col">
       {/* Intestazione: solo su schermo largo. Su telefono le righe diventano
           schede impilate, dove i valori si spiegano da soli. */}
       <div className={`border-border text-text-tertiary hidden gap-4 border-b px-5 py-3 text-[11px] font-semibold tracking-wider uppercase md:grid ${COLONNE}`}>
@@ -94,7 +94,7 @@ async function ListingsTable() {
         <span />
       </div>
 
-      <div className="divide-border divide-y">
+      <div className="divide-border divide-y md:min-h-0 md:flex-1 md:overflow-y-auto">
         {(listings as Listing[]).map(listing => (
           <Link
             key={listing.id}
@@ -144,8 +144,8 @@ export default async function ListingsPage() {
   const t = await getTranslations('listings.list')
 
   return (
-    <div>
-      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div className="md:flex md:min-h-0 md:flex-1 md:flex-col">
+      <header className="mb-8 shrink-0 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-text text-[26px] font-bold tracking-tight md:text-[34px]">{t('title')}</h1>
           <p className="text-text-tertiary mt-1 text-sm">{t('subtitle')}</p>

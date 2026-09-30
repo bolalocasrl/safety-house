@@ -135,7 +135,7 @@ async function CandidatesTable() {
   if (candidates.length === 0) return <EmptyState />
 
   return (
-    <div className="bg-surface border-border sh-scheda overflow-hidden rounded-xl border">
+    <div className="bg-surface border-border sh-scheda overflow-hidden rounded-xl border md:flex md:min-h-0 md:flex-1 md:flex-col">
       <div className={`border-border text-text-tertiary hidden gap-4 border-b px-5 py-3 text-[11px] font-semibold tracking-wider uppercase md:grid ${COLONNE}`}>
         <span>{t('colCandidate')}</span>
         <span>{t('colContractIncome')}</span>
@@ -146,7 +146,7 @@ async function CandidatesTable() {
         <span />
       </div>
 
-      <div className="divide-border divide-y">
+      <div className="divide-border divide-y md:min-h-0 md:flex-1 md:overflow-y-auto">
         {candidates.map(c => (
           <Link
             key={c.id}
@@ -203,8 +203,8 @@ export default async function CandidatesPage() {
   const t = await getTranslations('candidates.list')
 
   return (
-    <div>
-      <header className="mb-8">
+    <div className="md:flex md:min-h-0 md:flex-1 md:flex-col">
+      <header className="mb-8 shrink-0">
         <h1 className="text-text text-[26px] font-bold tracking-tight md:text-[34px]">{t('title')}</h1>
         <p className="text-text-tertiary mt-1 text-sm">{t('subtitle')}</p>
       </header>

@@ -119,10 +119,10 @@ export default async function DashboardPage() {
   const hasActiveListings = (recentListings ?? []).length > 0
 
   return (
-    <div>
+    <div className="md:flex md:min-h-0 md:flex-1 md:flex-col">
       {/* Intestazione: titolo a sinistra, azione principale a destra.
           Su schermo stretto il bottone va a capo sotto il titolo. */}
-      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <header className="mb-8 shrink-0 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-text text-[26px] font-bold tracking-tight md:text-[34px]">
             {t('title')}
@@ -140,6 +140,9 @@ export default async function DashboardPage() {
           {t('createListing')}
         </Link>
       </header>
+
+      {/* Da qui in giù scorre; titolo e azione restano fermi. */}
+      <div className="md:min-h-0 md:flex-1 md:overflow-y-auto">
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {contatori.map(({ etichetta, valore, Icona, testo, sfondo }) => (
@@ -225,6 +228,7 @@ export default async function DashboardPage() {
           </Link>
         </section>
       )}
+      </div>
     </div>
   )
 }
