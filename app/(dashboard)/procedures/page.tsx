@@ -1,7 +1,10 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate } from '@/lib/format'
+import { IconaProcedimenti, IconaFreccia } from '@/components/icone'
+import { ElencoRighe } from '@/components/scheletro'
 
 type ProcedureRow = {
   id: string
@@ -12,49 +15,23 @@ type ProcedureRow = {
   listings: { title: string; address: string; city: string } | null
 }
 
-function TableSkeleton() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-      {[...Array(3)].map((_, i) => (
-        <div key={i} style={{
-          height: '68px', background: 'var(--surface)',
-          borderRadius: i === 0 ? '12px 12px 0 0' : i === 2 ? '0 0 12px 12px' : '0',
-          opacity: 1 - i * 0.2,
-        }} />
-      ))}
-    </div>
-  )
-}
+const COLONNE = 'md:grid-cols-[1fr_180px_170px_130px_100px_24px]'
 
 async function EmptyState() {
   const t = await getTranslations('procedures.list')
   return (
-    <div style={{
-      background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: '12px', padding: '64px 32px', textAlign: 'center',
-    }}>
-      <div style={{
-        width: '56px', height: '56px', borderRadius: '12px',
-        background: 'color-mix(in srgb, var(--warning) 12%, transparent)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        margin: '0 auto 20px', fontSize: '28px',
-      }}>
-        📋
+    <div className="bg-surface border-border rounded-xl border px-6 py-14 text-center">
+      <div className="bg-warning/12 text-warning mx-auto mb-5 inline-flex rounded-2xl p-4">
+        <IconaProcedimenti className="h-7 w-7" />
       </div>
-      <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
-        {t('emptyTitle')}
-      </h2>
-      <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', maxWidth: '360px', margin: '0 auto 28px' }}>
-        {t('emptyDesc')}
-      </p>
-      <a href="/listings" style={{
-        display: 'inline-flex', alignItems: 'center', gap: '8px',
-        background: 'var(--primary)', color: 'var(--primary-foreground)',
-        padding: '10px 20px', borderRadius: '8px',
-        textDecoration: 'none', fontSize: '14px', fontWeight: 500,
-      }}>
+      <h2 className="text-text text-lg font-semibold">{t('emptyTitle')}</h2>
+      <p className="text-text-tertiary mx-auto mt-2 max-w-sm text-sm">{t('emptyDesc')}</p>
+      <Link
+        href="/listings"
+        className="bg-primary text-primary-foreground mt-6 inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold shadow-sm"
+      >
         {t('emptyCta')}
-      </a>
+      </Link>
     </div>
   )
 }
@@ -92,10 +69,7 @@ async function ProceduresTable() {
 
   if (error) {
     return (
-      <div style={{
-        background: 'color-mix(in srgb, var(--danger) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)',
-        borderRadius: '12px', padding: '20px 24px', color: 'var(--danger)', fontSize: '14px',
-      }}>
+      <div className="border-danger/35 bg-danger/10 text-danger rounded-xl border px-5 py-4 text-sm">
         {t('error')}
       </div>
     )
@@ -104,94 +78,85 @@ async function ProceduresTable() {
   const rows = (procedures ?? []) as unknown as ProcedureRow[]
   if (rows.length === 0) return <EmptyState />
 
-  const COLS = '1fr 180px 160px 120px 100px 80px'
-
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: COLS, padding: '12px 24px', gap: '16px', borderBottom: '1px solid var(--border)' }}>
-        {[t('colCandidate'), t('colListing'), t('colCurrentStep'), t('colStatus'), t('colStarted'), ''].map((h, i) => (
-          <span key={i} style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            {h}
-          </span>
-        ))}
+    <div className="bg-surface border-border overflow-hidden rounded-xl border">
+      <div className={`border-border text-text-tertiary hidden gap-4 border-b px-5 py-3 text-[11px] font-semibold tracking-wider uppercase md:grid ${COLONNE}`}>
+        <span>{t('colCandidate')}</span>
+        <span>{t('colListing')}</span>
+        <span>{t('colCurrentStep')}</span>
+        <span>{t('colStatus')}</span>
+        <span>{t('colStarted')}</span>
+        <span />
       </div>
 
-      {rows.map((proc, i) => {
-        const isCompleted = proc.status === 'completed'
-        const stepLabel = STEP_LABELS[proc.step_current] ?? String(proc.step_current)
-        const stepPct = Math.round((proc.step_current / 5) * 100)
+      <div className="divide-border divide-y">
+        {rows.map(proc => {
+          const concluso = proc.status === 'completed'
+          const etichettaPasso = STEP_LABELS[proc.step_current] ?? String(proc.step_current)
+          const percentuale = concluso ? 100 : Math.round((proc.step_current / 5) * 100)
 
-        return (
-          <div
-            key={proc.id}
-            style={{
-              display: 'grid', gridTemplateColumns: COLS,
-              padding: '16px 24px', gap: '16px', alignItems: 'center',
-              borderTop: i === 0 ? 'none' : '1px solid var(--border)',
-            }}
-          >
-            <div>
-              <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {proc.candidates?.full_name ?? tc('dash')}
-              </p>
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {proc.candidates?.email ?? ''}
-              </p>
-            </div>
-
-            <div style={{ overflow: 'hidden' }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {proc.listings?.title ?? tc('dash')}
-              </p>
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
-                {proc.listings?.city ?? ''}
-              </p>
-            </div>
-
-            <div>
-              <p style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 500, marginBottom: '4px' }}>
-                {isCompleted ? t('completed') : t('stepProgress', { step: proc.step_current, label: stepLabel })}
-              </p>
-              <div style={{ height: '4px', background: 'var(--border)', borderRadius: '2px', width: '100%' }}>
-                <div style={{
-                  height: '100%', borderRadius: '2px',
-                  background: isCompleted ? 'var(--success)' : 'var(--primary)',
-                  width: isCompleted ? '100%' : `${stepPct}%`,
-                  transition: 'width 0.3s',
-                }} />
+          return (
+            <Link
+              key={proc.id}
+              href={`/procedures/${proc.id}`}
+              className={`hover:bg-primary-subtle/50 group grid grid-cols-1 gap-2 px-5 py-4 transition-colors md:items-center md:gap-4 ${COLONNE}`}
+            >
+              <div className="min-w-0">
+                <p className="text-text truncate text-sm font-medium">
+                  {proc.candidates?.full_name ?? tc('dash')}
+                </p>
+                <p className="text-text-tertiary mt-0.5 truncate text-xs">
+                  {proc.candidates?.email ?? ''}
+                </p>
               </div>
-            </div>
 
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '5px',
-              padding: '4px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: 500,
-              color: isCompleted ? 'var(--success)' : 'var(--primary)',
-              background: isCompleted ? 'color-mix(in srgb, var(--success) 12%, transparent)' : 'color-mix(in srgb, var(--primary) 12%, transparent)',
-            }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
-              {isCompleted ? tc('status.completed') : tc('status.inProgress')}
-            </span>
+              <div className="min-w-0">
+                <p className="text-text-secondary truncate text-[13px]">
+                  {proc.listings?.title ?? tc('dash')}
+                </p>
+                <p className="text-text-tertiary mt-0.5 truncate text-xs">
+                  {proc.listings?.city ?? ''}
+                </p>
+              </div>
 
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
-              {formatDate(proc.created_at, locale)}
-            </p>
+              {/* Avanzamento: il passo in parole più la barra. Tiene la sua
+                  colonna anche su telefono, dove la barra a piena larghezza
+                  si legge meglio di un numero. */}
+              <div className="min-w-0">
+                <p className="text-text mb-1.5 truncate text-[13px] font-medium">
+                  {concluso ? t('completed') : t('stepProgress', { step: proc.step_current, label: etichettaPasso })}
+                </p>
+                <div className="bg-border h-1 w-full overflow-hidden rounded-full">
+                  <div
+                    className={`h-full rounded-full transition-[width] duration-300 ${concluso ? 'bg-success' : 'bg-primary'}`}
+                    style={{ width: `${percentuale}%` }}
+                  />
+                </div>
+              </div>
 
-            <div style={{ textAlign: 'right' }}>
-              <a
-                href={`/procedures/${proc.id}`}
-                style={{
-                  color: 'var(--primary)', fontSize: '13px', fontWeight: 500,
-                  textDecoration: 'none', padding: '6px 12px',
-                  borderRadius: '6px', border: '1px solid color-mix(in srgb, var(--primary) 30%, transparent)',
-                  display: 'inline-block', whiteSpace: 'nowrap',
-                }}
-              >
-                {t('open')}
-              </a>
-            </div>
-          </div>
-        )
-      })}
+              <div className="flex flex-wrap items-center gap-3 md:contents">
+                <span
+                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                    concluso ? 'text-success bg-success/12' : 'text-primary bg-primary/12'
+                  }`}
+                >
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
+                  {concluso ? tc('status.completed') : tc('status.inProgress')}
+                </span>
+
+                <p className="text-text-tertiary shrink-0 text-xs whitespace-nowrap">
+                  {formatDate(proc.created_at, locale)}
+                </p>
+
+                <IconaFreccia
+                  aria-label={t('open')}
+                  className="text-text-tertiary ml-auto h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5 md:ml-0 md:justify-self-end"
+                />
+              </div>
+            </Link>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -201,16 +166,12 @@ export default async function ProceduresPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>
-          {t('title')}
-        </h1>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>
-          {t('subtitle')}
-        </p>
-      </div>
+      <header className="mb-8">
+        <h1 className="text-text text-2xl font-bold tracking-tight md:text-[28px]">{t('title')}</h1>
+        <p className="text-text-tertiary mt-1 text-sm">{t('subtitle')}</p>
+      </header>
 
-      <Suspense fallback={<TableSkeleton />}>
+      <Suspense fallback={<ElencoRighe righe={3} testata={false} />}>
         <ProceduresTable />
       </Suspense>
     </div>

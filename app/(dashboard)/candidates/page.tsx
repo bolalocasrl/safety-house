@@ -1,8 +1,11 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency, formatDate } from '@/lib/format'
 import { DocumentStatusBadge, type DocumentStatus } from '@/components/document-status-badge'
+import { IconaCandidati, IconaFreccia } from '@/components/icone'
+import { ElencoRighe } from '@/components/scheletro'
 
 type Candidate = {
   id: string
@@ -16,67 +19,38 @@ type Candidate = {
   applications_count: number
 }
 
+// Nome ed email stanno insieme nella stessa colonna: otto colonne separate non
+// entravano nella larghezza della pagina e si schiacciavano a vicenda.
+const COLONNE = 'md:grid-cols-[1fr_150px_80px_130px_80px_100px_24px]'
+
 function ScoreBadge({ score }: { score: number }) {
-  const color = score > 7 ? 'var(--success)' : score >= 4 ? 'var(--warning)' : 'var(--danger)'
-  const bg    = score > 7 ? 'color-mix(in srgb, var(--success) 12%, transparent)' : score >= 4 ? 'color-mix(in srgb, var(--warning) 12%, transparent)' : 'color-mix(in srgb, var(--danger) 12%, transparent)'
+  const tinta = score > 7
+    ? 'text-success bg-success/12'
+    : score >= 4
+      ? 'text-warning bg-warning/12'
+      : 'text-danger bg-danger/12'
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      padding: '4px 10px', borderRadius: '99px',
-      background: bg, color, fontSize: '13px', fontWeight: 700, minWidth: '48px',
-    }}>
+    <span className={`inline-flex min-w-12 shrink-0 items-center justify-center rounded-full px-2.5 py-1 text-[13px] font-bold ${tinta}`}>
       {score.toFixed(1)}
     </span>
-  )
-}
-
-function TableSkeleton() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-      {[...Array(4)].map((_, i) => (
-        <div key={i} style={{
-          height: '68px',
-          background: 'var(--surface)',
-          borderRadius: i === 0 ? '12px 12px 0 0' : i === 3 ? '0 0 12px 12px' : '0',
-          opacity: 1 - i * 0.18,
-        }} />
-      ))}
-    </div>
   )
 }
 
 async function EmptyState() {
   const t = await getTranslations('candidates.list')
   return (
-    <div style={{
-      background: 'var(--surface)',
-      border: '1px solid var(--border)',
-      borderRadius: '12px',
-      padding: '64px 32px',
-      textAlign: 'center',
-    }}>
-      <div style={{
-        width: '56px', height: '56px', borderRadius: '12px',
-        background: 'color-mix(in srgb, var(--primary) 12%, transparent)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        margin: '0 auto 20px', fontSize: '28px',
-      }}>
-        👥
+    <div className="bg-surface border-border rounded-xl border px-6 py-14 text-center">
+      <div className="bg-primary/10 text-primary mx-auto mb-5 inline-flex rounded-2xl p-4">
+        <IconaCandidati className="h-7 w-7" />
       </div>
-      <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
-        {t('emptyTitle')}
-      </h2>
-      <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', maxWidth: '360px', margin: '0 auto 28px' }}>
-        {t('emptyDesc')}
-      </p>
-      <a href="/listings" style={{
-        display: 'inline-flex', alignItems: 'center', gap: '8px',
-        background: 'var(--primary)', color: 'var(--primary-foreground)',
-        padding: '10px 20px', borderRadius: '8px',
-        textDecoration: 'none', fontSize: '14px', fontWeight: 500,
-      }}>
+      <h2 className="text-text text-lg font-semibold">{t('emptyTitle')}</h2>
+      <p className="text-text-tertiary mx-auto mt-2 max-w-sm text-sm">{t('emptyDesc')}</p>
+      <Link
+        href="/listings"
+        className="bg-primary text-primary-foreground mt-6 inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold shadow-sm"
+      >
         {t('emptyCta')}
-      </a>
+      </Link>
     </div>
   )
 }
@@ -129,10 +103,7 @@ async function CandidatesTable() {
 
   if (error) {
     return (
-      <div style={{
-        background: 'color-mix(in srgb, var(--danger) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)',
-        borderRadius: '12px', padding: '20px 24px', color: 'var(--danger)', fontSize: '14px',
-      }}>
+      <div className="border-danger/35 bg-danger/10 text-danger rounded-xl border px-5 py-4 text-sm">
         {t('error')}
       </div>
     )
@@ -143,8 +114,9 @@ async function CandidatesTable() {
   for (const app of applications ?? []) {
     const c = app.candidates as unknown as Candidate | null
     if (!c) continue
-    if (candidateMap.has(c.id)) {
-      candidateMap.get(c.id)!.applications_count++
+    const esistente = candidateMap.get(c.id)
+    if (esistente) {
+      esistente.applications_count++
     } else {
       candidateMap.set(c.id, { ...c, applications_count: 1 })
     }
@@ -162,100 +134,67 @@ async function CandidatesTable() {
 
   if (candidates.length === 0) return <EmptyState />
 
-  const COLS = '1fr 170px 140px 80px 140px 90px 100px 90px'
-
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
-
-      {/* Header */}
-      <div style={{ display: 'grid', gridTemplateColumns: COLS, padding: '12px 24px', gap: '16px', borderBottom: '1px solid var(--border)' }}>
-        {[t('colCandidate'), t('colEmail'), t('colContractIncome'), t('colScore'), t('colDocument'), t('colApplications'), t('colRegistered'), ''].map((h, i) => (
-          <span key={i} style={{ color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            {h}
-          </span>
-        ))}
+    <div className="bg-surface border-border overflow-hidden rounded-xl border">
+      <div className={`border-border text-text-tertiary hidden gap-4 border-b px-5 py-3 text-[11px] font-semibold tracking-wider uppercase md:grid ${COLONNE}`}>
+        <span>{t('colCandidate')}</span>
+        <span>{t('colContractIncome')}</span>
+        <span>{t('colScore')}</span>
+        <span>{t('colDocument')}</span>
+        <span>{t('colApplications')}</span>
+        <span>{t('colRegistered')}</span>
+        <span />
       </div>
 
-      {/* Rows */}
-      {candidates.map((c, i) => (
-        <div
-          key={c.id}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: COLS,
-            padding: '16px 24px',
-            gap: '16px',
-            alignItems: 'center',
-            borderTop: i === 0 ? 'none' : '1px solid var(--border)',
-          }}
-        >
-          {/* Nome */}
-          <div>
-            <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {c.full_name ?? tc('dash')}
-            </p>
-          </div>
+      <div className="divide-border divide-y">
+        {candidates.map(c => (
+          <Link
+            key={c.id}
+            href={`/candidates/${c.id}`}
+            className={`hover:bg-primary-subtle/50 group grid grid-cols-1 gap-2 px-5 py-4 transition-colors md:items-center md:gap-4 ${COLONNE}`}
+          >
+            <div className="min-w-0">
+              <p className="text-text truncate text-sm font-medium">{c.full_name ?? tc('dash')}</p>
+              <p className="text-text-tertiary mt-0.5 truncate text-xs">{c.email ?? tc('dash')}</p>
+            </div>
 
-          {/* Email */}
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {c.email ?? tc('dash')}
-          </p>
+            <div className="min-w-0">
+              <p className="text-text truncate text-[13px] font-medium">
+                {c.contract_type ? (CONTRACT_LABELS[c.contract_type] ?? c.contract_type) : tc('dash')}
+              </p>
+              <p className="text-text-tertiary mt-0.5 truncate text-xs">
+                {c.monthly_income != null ? formatCurrency(c.monthly_income, locale) + tc('perMonth') : tc('dash')}
+              </p>
+            </div>
 
-          {/* Contratto / Reddito */}
-          <div>
-            <p style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 500, marginBottom: '2px' }}>
-              {c.contract_type ? (CONTRACT_LABELS[c.contract_type] ?? c.contract_type) : tc('dash')}
-            </p>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
-              {c.monthly_income != null ? formatCurrency(c.monthly_income, locale) + tc('perMonth') : tc('dash')}
-            </p>
-          </div>
+            {/* Su schermo largo md:contents scioglie il contenitore e i figli
+                entrano nelle colonne; su telefono restano su una riga sola. */}
+            <div className="flex flex-wrap items-center gap-3 md:contents">
+              {c.safety_score != null
+                ? <ScoreBadge score={c.safety_score} />
+                : <span className="text-text-tertiary shrink-0 text-[13px]">{tc('dash')}</span>}
 
-          {/* Score */}
-          <div>
-            {c.safety_score != null
-              ? <ScoreBadge score={c.safety_score} />
-              : <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>{tc('dash')}</span>
-            }
-          </div>
+              <DocumentStatusBadge
+                status={c.document_status}
+                label={DOC_STATUS_LABELS[c.document_status] ?? DOC_STATUS_LABELS.verified}
+              />
 
-          {/* Documento */}
-          <div>
-            <DocumentStatusBadge status={c.document_status} label={DOC_STATUS_LABELS[c.document_status] ?? DOC_STATUS_LABELS.verified} />
-          </div>
+              <span className="bg-primary/10 text-primary inline-flex shrink-0 justify-self-start rounded-full px-2.5 py-1 text-xs font-semibold">
+                {c.applications_count}
+              </span>
 
-          {/* Candidature */}
-          <div>
-            <span style={{
-              background: 'color-mix(in srgb, var(--primary) 12%, transparent)', color: 'var(--primary)',
-              borderRadius: '99px', padding: '3px 10px',
-              fontSize: '12px', fontWeight: 600,
-            }}>
-              {c.applications_count}
-            </span>
-          </div>
+              <p className="text-text-tertiary shrink-0 text-xs whitespace-nowrap">
+                {formatDate(c.created_at, locale)}
+              </p>
 
-          {/* Registrato */}
-          <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
-            {formatDate(c.created_at, locale)}
-          </p>
-
-          {/* Azione */}
-          <div style={{ textAlign: 'right' }}>
-            <a
-              href={`/candidates/${c.id}`}
-              style={{
-                color: 'var(--primary)', fontSize: '13px', fontWeight: 500,
-                textDecoration: 'none', padding: '6px 12px',
-                borderRadius: '6px', border: '1px solid color-mix(in srgb, var(--primary) 30%, transparent)',
-                display: 'inline-block', whiteSpace: 'nowrap',
-              }}
-            >
-              {t('viewProfile')}
-            </a>
-          </div>
-        </div>
-      ))}
+              <IconaFreccia
+                aria-label={t('viewProfile')}
+                className="text-text-tertiary ml-auto h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5 md:ml-0 md:justify-self-end"
+              />
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }
@@ -265,16 +204,12 @@ export default async function CandidatesPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ color: 'var(--text)', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>
-          {t('title')}
-        </h1>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px' }}>
-          {t('subtitle')}
-        </p>
-      </div>
+      <header className="mb-8">
+        <h1 className="text-text text-2xl font-bold tracking-tight md:text-[28px]">{t('title')}</h1>
+        <p className="text-text-tertiary mt-1 text-sm">{t('subtitle')}</p>
+      </header>
 
-      <Suspense fallback={<TableSkeleton />}>
+      <Suspense fallback={<ElencoRighe righe={5} testata={false} />}>
         <CandidatesTable />
       </Suspense>
     </div>
