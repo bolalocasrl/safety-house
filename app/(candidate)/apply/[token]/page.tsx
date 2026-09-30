@@ -350,12 +350,17 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
         </aside>
 
         {/* Card form */}
-        <div className="bg-surface border-border sh-scheda rounded-xl border p-7 sm:p-8">
+        <div className="bg-surface border-border sh-scheda rounded-xl border p-7 sm:p-8 lg:sticky lg:top-10 lg:flex lg:max-h-[calc(100vh-5rem)] lg:flex-col">
           <StepIndicator current={step} total={4} />
 
           <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 600, marginBottom: '24px' }}>
             {STEP_TITLES[step]}
           </h2>
+
+          {/* Solo da 1024px in su, dove la scheda ha l'altezza per
+              permetterselo: sotto, la pagina scorre normalmente e
+              bloccare l'altezza lascerebbe una finestrella di poche righe. */}
+          <div className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
 
 
           {/* Step 1 — Dati personali */}
@@ -533,6 +538,8 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
               </div>
             </div>
           )}
+
+          </div>
 
           {submitError && (
             <div style={{

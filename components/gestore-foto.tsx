@@ -52,7 +52,16 @@ export default function GestoreFoto({
           setErrore(t('photosNotImage'))
           continue
         }
+
+        // null significa che non si è riusciti a portarla sotto il tetto del
+        // contenitore: inutile tentare il caricamento, verrebbe respinto dal
+        // server con un errore molto meno comprensibile di questo.
         const ridotta = await riduciImmagine(file)
+        if (!ridotta) {
+          setErrore(t('photosTooBig'))
+          continue
+        }
+
         const percorso = `${listingId}/${crypto.randomUUID()}.jpg`
         const { error } = await supabase.storage
           .from(CONTENITORE_FOTO)

@@ -156,7 +156,8 @@
       "photosDelete": "Eliminar",
       "photosUploading": "Subiendo…",
       "photosError": "No se ha podido subir. Inténtalo de nuevo.",
-      "photosNotImage": "Este archivo no es una imagen."
+      "photosNotImage": "Este archivo no es una imagen.",
+      "photosTooBig": "No se puede subir esta imagen: demasiado grande o en un formato no reconocido."
     }
   },
   "candidates": {

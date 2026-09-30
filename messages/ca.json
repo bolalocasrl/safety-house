@@ -156,7 +156,8 @@
       "photosDelete": "Elimina",
       "photosUploading": "Pujant…",
       "photosError": "No s'ha pogut pujar. Torna-ho a provar.",
-      "photosNotImage": "Aquest fitxer no és una imatge."
+      "photosNotImage": "Aquest fitxer no és una imatge.",
+      "photosTooBig": "No es pot pujar aquesta imatge: massa gran o en un format no reconegut."
     }
   },
   "candidates": {

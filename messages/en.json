@@ -156,7 +156,8 @@
       "photosDelete": "Delete",
       "photosUploading": "Uploading…",
       "photosError": "Upload failed. Please try again.",
-      "photosNotImage": "That file is not an image."
+      "photosNotImage": "That file is not an image.",
+      "photosTooBig": "Can't upload this image: too large, or in a format we don't recognise."
     }
   },
   "candidates": {
