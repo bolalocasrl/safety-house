@@ -320,41 +320,39 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
   const STEP_TITLES = [t('steps.personal'), t('steps.employment'), t('steps.lifestyle'), t('steps.documents')]
 
   return (
-    <div className="md:h-screen md:overflow-hidden" style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: 'sans-serif' }}>
-      <div className="md:flex md:h-full md:flex-col" style={{ maxWidth: '560px', margin: '0 auto', padding: '48px 24px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: 'sans-serif' }}>
+      {/* Da 1024px in su due colonne: l'annuncio resta sott'occhio a sinistra
+          mentre si compila a destra. Sotto, una colonna sola con l'annuncio
+          in cima. La pagina scorre normalmente: il modulo si compila
+          dall'alto in basso, e bloccarne l'altezza lasciava una finestrella
+          di poche righe su schermi bassi. */}
+      <div className="mx-auto w-full max-w-[980px] px-6 py-10 lg:grid lg:grid-cols-[320px_1fr] lg:items-start lg:gap-8">
 
-        {/* Intestazione annuncio */}
-        <div className="md:shrink-0" style={{
-          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px',
-          padding: '20px 24px', marginBottom: '32px',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
-        }}>
-          <div>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-              {t('header.applyingFor')}
-            </p>
-            <p style={{ color: 'var(--text)', fontSize: '16px', fontWeight: 600 }}>{listing.title}</p>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>{listing.address}, {listing.city}</p>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ color: 'var(--primary)', fontSize: '18px', fontWeight: 700 }}>
+        {/* Riepilogo annuncio */}
+        <aside className="bg-surface border-border sh-scheda mb-8 rounded-xl border px-6 py-5 lg:sticky lg:top-10 lg:mb-0">
+          <p className="text-text-tertiary mb-1 text-[11px] font-semibold tracking-wider uppercase">
+            {t('header.applyingFor')}
+          </p>
+          <p className="text-text text-base font-semibold">{listing.title}</p>
+          <p className="text-text-tertiary mt-0.5 text-[13px]">{listing.address}, {listing.city}</p>
+
+          <div className="border-border mt-4 flex items-baseline gap-2 border-t pt-4">
+            <span className="text-primary text-[22px] font-bold [font-family:var(--font-sora)]">
               {formatCurrency(listing.monthly_rent, locale)}
-            </p>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>{tc('perMonth')} · {t('header.rooms', { count: listing.rooms })}</p>
+            </span>
+            <span className="text-text-tertiary text-xs">{tc('perMonth')}</span>
           </div>
-        </div>
+          <p className="text-text-tertiary mt-1 text-xs">{t('header.rooms', { count: listing.rooms })}</p>
+        </aside>
 
         {/* Card form */}
-        <div className="md:flex md:min-h-0 md:flex-1 md:flex-col" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '32px' }}>
+        <div className="bg-surface border-border sh-scheda rounded-xl border p-7 sm:p-8">
           <StepIndicator current={step} total={4} />
 
           <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 600, marginBottom: '24px' }}>
             {STEP_TITLES[step]}
           </h2>
 
-          {/* Scorrono solo i campi: indicatore dei passi in alto e
-              bottoni in basso restano sempre a vista. */}
-          <div className="md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-1">
 
           {/* Step 1 — Dati personali */}
           {step === 0 && (
@@ -531,8 +529,6 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
               </div>
             </div>
           )}
-
-          </div>
 
           {submitError && (
             <div style={{
