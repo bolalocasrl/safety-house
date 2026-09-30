@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/format'
 import { eLimiteInvioEmail } from '@/lib/errori-auth'
+import { CampoNazionalita, CampoTelefono } from '@/components/campi-candidatura'
 
 type Listing = {
   id: string
@@ -319,11 +320,11 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
   const STEP_TITLES = [t('steps.personal'), t('steps.employment'), t('steps.lifestyle'), t('steps.documents')]
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: 'sans-serif' }}>
-      <div style={{ maxWidth: '560px', margin: '0 auto', padding: '48px 24px' }}>
+    <div className="md:h-screen md:overflow-hidden" style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: 'sans-serif' }}>
+      <div className="md:flex md:h-full md:flex-col" style={{ maxWidth: '560px', margin: '0 auto', padding: '48px 24px' }}>
 
         {/* Intestazione annuncio */}
-        <div style={{
+        <div className="md:shrink-0" style={{
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px',
           padding: '20px 24px', marginBottom: '32px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
@@ -344,12 +345,16 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
         </div>
 
         {/* Card form */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '32px' }}>
+        <div className="md:flex md:min-h-0 md:flex-1 md:flex-col" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '32px' }}>
           <StepIndicator current={step} total={4} />
 
           <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 600, marginBottom: '24px' }}>
             {STEP_TITLES[step]}
           </h2>
+
+          {/* Scorrono solo i campi: indicatore dei passi in alto e
+              bottoni in basso restano sempre a vista. */}
+          <div className="md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-1">
 
           {/* Step 1 — Dati personali */}
           {step === 0 && (
@@ -364,7 +369,12 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
               </div>
               <div>
                 <label style={labelStyle}>{t('step1.phone')}</label>
-                <input style={inputStyle} type="tel" placeholder={t('step1.phonePlaceholder')} value={step1.phone} onChange={e => set1('phone', e.target.value)} />
+                <CampoTelefono
+                  valore={step1.phone}
+                  onChange={v => set1('phone', v)}
+                  locale={locale}
+                  placeholder={t('step1.phonePlaceholder')}
+                />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
@@ -373,7 +383,12 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
                 </div>
                 <div>
                   <label style={labelStyle}>{t('step1.nationality')}</label>
-                  <input style={inputStyle} type="text" placeholder={t('step1.nationalityPlaceholder')} value={step1.nationality} onChange={e => set1('nationality', e.target.value)} />
+                  <CampoNazionalita
+                    valore={step1.nationality}
+                    onChange={v => set1('nationality', v)}
+                    locale={locale}
+                    placeholder={t('step1.nationalityPlaceholder')}
+                  />
                 </div>
               </div>
             </div>
@@ -516,6 +531,8 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
               </div>
             </div>
           )}
+
+          </div>
 
           {submitError && (
             <div style={{

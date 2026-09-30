@@ -5,6 +5,7 @@ import { formatCurrency, formatDate } from '@/lib/format'
 import { DocumentStatusBadge, type DocumentStatus } from '@/components/document-status-badge'
 import Link from 'next/link'
 import { IconaFreccia } from '@/components/icone'
+import { nomePaese } from '@/lib/paesi'
 
 type Candidate = {
   id: string
@@ -184,7 +185,7 @@ export default async function CandidateProfilePage({ params }: { params: Promise
           <div style={{ marginTop: '8px' }}>
             <InfoRow label={t('phone')} value={c.phone} />
             <InfoRow label={t('dniNie')} value={c.dni_nie} />
-            <InfoRow label={t('nationality')} value={c.nationality} />
+            <InfoRow label={t('nationality')} value={nomePaese(c.nationality, locale)} />
           </div>
         </Card>
 
