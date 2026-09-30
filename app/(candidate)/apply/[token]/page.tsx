@@ -183,12 +183,14 @@ export default function ApplyPage({ params }: { params: Promise<{ token: string 
 
   useEffect(() => {
     async function loadListing() {
+      // Passa dalla funzione annuncio_pubblico invece di leggere la tabella:
+      // così dal di fuori si ottiene solo l'annuncio del token, e solo i campi
+      // che servono a questa pagina. Leggendo la tabella, chiunque avesse la
+      // chiave pubblica poteva scaricare tutti gli annunci dell'agenzia con
+      // ogni colonna, token di candidatura compresi.
       const { data, error } = await supabase
-        .from('listings')
-        .select('id, title, address, city, monthly_rent, rooms')
-        .eq('public_link_token', token)
-        .eq('status', 'active')
-        .single()
+        .rpc('annuncio_pubblico', { token })
+        .maybeSingle()
 
       if (error || !data) {
         setInvalidToken(true)
