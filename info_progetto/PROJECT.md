@@ -297,6 +297,34 @@ Configuration): Site URL `https://safety-house-nine.vercel.app`, Redirect URLs
 `https://safety-house-nine.vercel.app/**` e `http://localhost:3000/**`. Senza
 questi il login via email non riporta all'app.
 
+**Invio email: Brevo via SMTP** (Supabase → Authentication → SMTP Settings).
+Account Brevo intestato a `bolalocasrl@gmail.com`, organizzazione "Safety
+House" — separato da quello di Wooden Tree House, perché dentro un solo
+account la quota giornaliera e la rubrica contatti sono condivise.
+
+| Campo | Valore |
+|-------|--------|
+| Host | `smtp-relay.brevo.com` |
+| Port | `587` |
+| Username | `bbbb8f001@smtp-brevo.com` |
+| Password | chiave SMTP di Brevo (~90 caratteri, inizia con `xsmtpsib-`) |
+| Sender | `safetyhouse26@gmail.com`, nome "Safety House" |
+
+Prima di questo si usava il servizio incluso di Supabase, limitato a pochi
+invii all'ora: bastava una sessione di prove per bloccare tutto con
+`over_email_send_rate_limit`.
+
+⚠️ **Se ricompare `Error sending confirmation email` (500):** la causa più
+probabile è la chiave SMTP incollata male. È lunga e Supabase la maschera,
+quindi un carattere mancante non si vede. Per distinguere un problema di
+credenziali da uno di configurazione, conviene provare il collegamento SMTP
+direttamente dal terminale (nodemailer verso `smtp-relay.brevo.com`): se
+l'autenticazione passa lì ma Supabase continua a fallire, è la copia salvata
+nel pannello a essere rovinata — va ricopiata e reincollata.
+
+Per il lancio servirà un dominio proprio: il mittente non può restare un
+indirizzo Gmail.
+
 ---
 
 ## ⚙️ COMANDI OPERATIVI
