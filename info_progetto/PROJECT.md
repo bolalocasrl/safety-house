@@ -239,17 +239,31 @@ alternativa si può tenere il link e aggiungere il codice come ripiego.
 Nel frattempo `/verify` non resta più bloccata: dopo 10 secondi senza sessione
 riporta al login.
 
-**Difetti trovati durante la ricostruzione (piccoli, non ancora sistemati):**
+**Controllo generale del 30/09/2026 — difetti trovati e risolti:**
 
-- `app/(candidate)/apply/[token]/page.tsx` riga ~252: l'indirizzo di ritorno del
-  link magico è scritto fisso (`https://safety-house-nine.vercel.app/verify`),
-  mentre `login/page.tsx` lo calcola con `window.location.origin`. In locale la
-  candidatura rimanda quindi al sito online. Va allineato al comportamento del
-  login.
-- `NEXT_PUBLIC_APP_URL` non era impostata su Vercel, quindi il logout in
-  produzione era rotto (`new URL('/login', undefined)`). Risolto il 29/09/2026
-  aggiungendo la variabile, ma vale la pena controllare che ogni variabile usata
-  con `!` nel codice esista davvero in produzione.
+| Gravità | Difetto | Esito |
+|---------|---------|-------|
+| 🔴 | `/api/scoring` verificava solo che chi chiama fosse registrato, non che la candidatura fosse della sua agenzia, e lavorava col client admin: chiunque avesse un account poteva leggere e sovrascrivere il punteggio di qualsiasi candidato | risolto |
+| 🟠 | Nessuna guardia di ruolo sull'area agenzia: un candidato con un vecchio link magico ci entrava, e ogni pagina interrogava il database con un'agenzia inesistente | risolto |
+| 🟡 | Dashboard senza controllo d'errore: un guasto del database appariva come "0 annunci, 0 candidature" | risolto |
+| 🟡 | Bottone "Copia link" senza conferma né gestione dell'errore | risolto |
+| 🟡 | Tabella annunci tagliata su finestra stretta (`overflow:hidden` su colonne fisse da ~900px) | risolto |
+| 🟢 | Annunci attivi leggibili da chiunque con ogni colonna, `public_link_token` compreso | risolto con `003` |
+
+**Verificato con prove reali, non solo a lettura di codice:**
+- lettura anonima di ogni tabella → candidati, candidature, utenti, agenzie,
+  procedimenti e filiali sono chiusi
+- scrittura anonima (modifica prezzi, cancellazione annunci, alterazione
+  punteggi, cancellazione candidature) → zero righe toccate in tutti i casi,
+  integrità dei dati ricontrollata dopo
+- attenzione: PostgREST risponde `204` anche quando l'operazione non tocca
+  nessuna riga. Per capire se una scrittura è davvero passata va usato
+  l'header `Prefer: return=representation`, che restituisce le righe toccate
+
+**Non sono difetti, verificato:** le pagine Annunci, Candidati e Procedimenti
+controllano già l'esito delle query e mostrano un messaggio dedicato; il
+profilo candidato usa `notFound()`; le API annunci e procedimenti ricavano
+l'agenzia dalla sessione invece che dalla richiesta.
 
 > Il resto dei task delle sessioni precedenti è completato. Proposta Sprint 5:
 
