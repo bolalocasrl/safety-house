@@ -44,13 +44,34 @@ export async function POST(request: NextRequest) {
 
   const { data: listing, error: listingError } = await db
     .from('listings')
-    .select('monthly_rent, owner_requirements')
+    .select('monthly_rent, owner_requirements, agency_id')
     .eq('id', application.listing_id)
     .single()
 
   if (listingError || !listing) {
     console.error('[scoring] listing not found:', listingError?.message)
     return NextResponse.json({ error: 'Annuncio non trovato' }, { status: 404 })
+  }
+
+  // Controllo di appartenenza: la candidatura deve essere su un annuncio
+  // dell'agenzia di chi sta chiedendo.
+  //
+  // Serve un controllo esplicito proprio perché sopra si usa il client admin,
+  // che scavalca di proposito le regole del database: senza questa verifica
+  // bastava essere registrati — anche solo come candidato — per farsi
+  // restituire il punteggio e il dettaglio di chiunque, e per sovrascriverlo.
+  //
+  // L'agenzia si legge con il client normale (non admin): così la riga arriva
+  // dalla sessione di chi chiede e non da quello che manda nella richiesta.
+  const { data: utente } = await supabase
+    .from('users')
+    .select('agency_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!utente?.agency_id || utente.agency_id !== listing.agency_id) {
+    console.warn('[scoring] accesso negato: utente', user.id, 'su candidatura', application_id)
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
   }
 
   const breakdown = calculateScore(

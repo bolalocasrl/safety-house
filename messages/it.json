@@ -296,6 +296,10 @@
     },
     "verify": {
       "verifying": "Verifica in corso..."
+    },
+    "noAgency": {
+      "title": "Questo account non ha accesso all'area agenzia",
+      "desc": "L'indirizzo con cui sei entrato non è collegato a nessuna agenzia. Se sei un candidato non devi fare nulla: sarà l'agenzia a contattarti. Se invece dovresti avere accesso, chiedi al direttore della tua agenzia di aggiungerti."
     }
   },
   "apply": {

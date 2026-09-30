@@ -296,6 +296,10 @@
     },
     "verify": {
       "verifying": "Verificant..."
+    },
+    "noAgency": {
+      "title": "Aquest compte no té accés a l'àrea d'agència",
+      "desc": "L'adreça amb què has entrat no està vinculada a cap agència. Si ets candidat no has de fer res: serà l'agència qui es posi en contacte amb tu. Si hi hauries de tenir accés, demana al director de la teva agència que t'hi afegeixi."
     }
   },
   "apply": {

@@ -296,6 +296,10 @@
     },
     "verify": {
       "verifying": "Verificando..."
+    },
+    "noAgency": {
+      "title": "Esta cuenta no tiene acceso al área de agencia",
+      "desc": "La dirección con la que has entrado no está vinculada a ninguna agencia. Si eres candidato no tienes que hacer nada: la agencia se pondrá en contacto contigo. Si deberías tener acceso, pide al director de tu agencia que te añada."
     }
   },
   "apply": {

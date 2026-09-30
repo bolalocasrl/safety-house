@@ -296,6 +296,10 @@
     },
     "verify": {
       "verifying": "Verifying..."
+    },
+    "noAgency": {
+      "title": "This account has no access to the agency area",
+      "desc": "The address you signed in with isn't linked to any agency. If you're an applicant there's nothing to do — the agency will contact you. If you should have access, ask your agency director to add you."
     }
   },
   "apply": {
